@@ -21,4 +21,4 @@ LocalSpeech nutzt Web-Worker und WebAssembly/WebGPU, um Spracherkennung (Whisper
 
 LocalSpeech steht unter der [GNU General Public License v3.0 oder später](LICENSE). Eine Übersicht der verwendeten Drittanbieter-Lizenzen findet sich unter `public/third-party-licenses.txt` bzw. in der App unter „Lizenzen“.
 
-Copyright © 2026 Chris Velten. Der Name „LocalSpeech“ und das Logo sind hiervon ausgenommen – Marken- und Namensrechte bleiben vorbehalten.
+Copyright © 2026 Chris Velten. Der Name „LocalSpeech“ und das Logo sind hiervon ausgenommen – Marken- und Namensrechte bleiben vorbehalten. 
