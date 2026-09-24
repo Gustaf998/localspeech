@@ -1,0 +1,613 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LocalSpeech (Beta) — Sprachen sprechen mit deinem KI-Gesprächspartner. Offline & kostenlos.</title>
+  <meta name="description" content="Trainiere echte Gespräche auf Englisch, Spanisch, Französisch und mehr — mit realistischer KI-Stimme, komplett offline in deinem Browser. Keine Cloud, kein Konto, kein Abo. Aktuell in der Beta-Phase." />
+  <meta property="og:title" content="LocalSpeech (Beta) — Sprachen sprechen. Frei. Offline. Kostenlos." />
+  <meta property="og:description" content="Echte Gespräche in 5 Sprachen mit realistischer KI-Stimme, 100 % lokal in deinem Browser. Keine Cloud, kein Abo, 0 €. Aktuell in der Beta-Phase." />
+  <meta property="og:type" content="website" />
+  <meta name="theme-color" content="#0b0f14" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+</head>
+<body>
+
+<!-- ======================= LANDING ======================= -->
+<div id="landing">
+  <div class="nav-wrap">
+    <nav class="nav">
+      <a class="logo" href="#/">
+        <span class="logo-mark" aria-hidden="true"></span>
+        <span>LocalSpeech</span>
+        <span class="beta-badge" data-i18n="beta.badge">Beta</span>
+      </a>
+      <div class="nav-links">
+        <a href="#wirkung" data-i18n="nav.science">Wirkung</a>
+        <a href="#features" data-i18n="nav.features">Funktionen</a>
+        <a href="#faq" data-i18n="nav.faq">FAQ</a>
+        <a href="#unterstuetzen" data-i18n="nav.support">Unterstützen</a>
+      </div>
+      <div class="nav-right">
+        <label class="lang-switch">
+          <span class="lang-flag" id="ui-lang-flag" aria-hidden="true"></span>
+          <select id="ui-lang-select" class="lang-select" aria-label="Language"></select>
+        </label>
+        <a class="btn btn-primary btn-sm" href="/app.html" data-i18n="nav.cta">Jetzt sprechen</a>
+      </div>
+    </nav>
+  </div>
+
+  <!-- Bühnenlicht: drei Scheinwerferkegel leuchten von oben auf die Headline -->
+  <div class="stage-lights" aria-hidden="true">
+    <span class="beam beam-l"></span>
+    <span class="beam beam-c"></span>
+    <span class="beam beam-r"></span>
+    <span class="stage-glow"></span>
+  </div>
+
+  <header class="hero hero-stage">
+    <div class="hero-badge" data-i18n="hero.badge">🔒 100 % offline · Keine Cloud · Kein Abo · 0 €</div>
+    <h1><span data-i18n="hero.h1a">Der erste KI-Sprachlehrer,</span><br /><span class="grad" data-i18n="hero.h1b">der dein Gerät nie verlässt.</span></h1>
+    <p class="hero-sub" data-i18n-html="hero.sub">
+      Übe echte Gespräche in 5 Sprachen — mit realistischer KI-Stimme, komplett in deinem Browser.
+      <strong>Nichts verlässt dein Gerät.</strong>
+    </p>
+    <div class="hero-actions">
+      <a class="btn btn-primary btn-lg" href="/app.html" data-i18n="hero.ctaStart">Kostenlos loslegen →</a>
+      <a class="btn btn-ghost btn-lg" href="#privacy" data-i18n="hero.ctaHow">Warum 100 % privat?</a>
+    </div>
+    <p class="hero-note" id="hero-support-note">Läuft am besten in Chrome oder Edge (WebGPU).</p>
+
+    <div class="scroll-cue" aria-hidden="true"><span></span></div>
+  </header>
+
+  <section class="section hero-extra">
+    <div class="hero-stats">
+      <div class="stat">
+        <div class="stat-value" data-i18n="heroStats.s1v">2,2×</div>
+        <div class="stat-label"><span data-i18n="heroStats.s1l">mehr bleibt im Langzeitgedächtnis, wenn du aktiv abrufst statt still zu wiederholen</span></div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" data-i18n="heroStats.s2v">&lt; 30 s</div>
+        <div class="stat-label"><span data-i18n="heroStats.s2l">spricht ein Schüler rechnerisch pro Schulstunde — hier gehört dir das ganze Gespräch</span></div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" data-i18n="heroStats.s3v">100 %</div>
+        <div class="stat-label"><span data-i18n="heroStats.s3l">privat: Stimme und Gespräche bleiben auf deinem Gerät — technisch garantiert</span></div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" data-i18n="heroStats.s4v">0 €</div>
+        <div class="stat-label"><span data-i18n="heroStats.s4l">für immer kostenlos: kein Abo, kein Konto, keine Paywall</span></div>
+      </div>
+    </div>
+
+    <div class="hero-demo" aria-hidden="true">
+      <div class="demo-bubble demo-ai">Hey! So, how was your weekend — did you end up going hiking?</div>
+      <div class="demo-bubble demo-user">Yes! We walked, ähm… we <em>hiked</em> almost twenty kilometers.</div>
+      <div class="demo-bubble demo-ai">Twenty kilometers, nice! By the way, “we hiked” — you got it exactly right the second time.</div>
+    </div>
+  </section>
+
+  <section id="privacy" class="section privacy-section">
+    <h2 data-i18n="privacy.h2">Deine Stimme gehört dir.</h2>
+    <p class="section-sub" data-i18n="privacy.sub">
+      Sprach-Apps schicken deine Stimme normalerweise in die Cloud. LocalSpeech nicht — hier gibt es schlicht keinen Server, an den etwas geschickt werden könnte.
+    </p>
+    <div class="privacy-points">
+      <div class="pp"><span>🎙️</span><div data-i18n-html="privacy.p1"><strong>Spracherkennung lokal</strong><br />Whisper läuft direkt in deinem Browser.</div></div>
+      <div class="pp"><span>🧠</span><div data-i18n-html="privacy.p2"><strong>KI lokal</strong><br />Das Sprachmodell rechnet auf deiner eigenen GPU.</div></div>
+      <div class="pp"><span>🔊</span><div data-i18n-html="privacy.p3"><strong>Stimme lokal</strong><br />Auch die Sprachausgabe entsteht auf deinem Gerät.</div></div>
+      <div class="pp"><span>🌐</span><div data-i18n-html="privacy.p4"><strong>Netz nur einmal</strong><br />Internet braucht es nur für den einmaligen Modell-Download.</div></div>
+    </div>
+  </section>
+
+  <section id="wirkung" class="section science-section">
+    <h2 data-i18n="sci.h2">Warum Gespräche wirken — die Zahlen</h2>
+    <p class="section-sub" data-i18n-html="sci.sub">Kein Marketing, nur Forschung: Zahlen aus <em>Science</em>, <em>Nature</em> und amtlichen Statistiken.</p>
+
+    <div class="chart-grid">
+      <div class="chart-card">
+        <h3 data-i18n="sci.c1t">Nach einer Woche abgefragt: Was ist noch da?</h3>
+        <div class="chart-sub" data-i18n="sci.c1sub">Vokabellernen im Experiment — aktives Abrufen schlägt stilles Wiederholen um mehr als das Doppelte.</div>
+        <div class="hbar hbar-hero">
+          <div class="hbar-head"><span class="hbar-name" data-i18n="sci.c1aName">Aktiv abgerufen</span><span class="hbar-value" data-i18n="sci.c1aVal">80 %</span></div>
+          <div class="hbar-track"><div class="hbar-fill" style="--w:80%"></div></div>
+        </div>
+        <div class="hbar">
+          <div class="hbar-head"><span class="hbar-name" data-i18n="sci.c1bName">Nur wiederholt angeschaut</span><span class="hbar-value" data-i18n="sci.c1bVal">36 %</span></div>
+          <div class="hbar-track"><div class="hbar-fill" style="--w:36%"></div></div>
+        </div>
+        <div class="chart-src"><span data-i18n="chart.src">Quelle:</span> <a href="https://www.science.org/doi/10.1126/science.1152408" target="_blank" rel="noopener">Karpicke &amp; Roediger 2008, Science</a></div>
+      </div>
+
+      <div class="chart-card">
+        <h3 data-i18n="sci.c2t">Aktive Sprechzeit pro Person in 45 Minuten</h3>
+        <div class="chart-sub" data-i18n="sci.c2sub">Im Klassenverband teilen sich alle die Redezeit — die Lehrkraft spricht doppelt so viel wie alle Lernenden zusammen.</div>
+        <div class="hbar hbar-hero">
+          <div class="hbar-head"><span class="hbar-name" data-i18n="sci.c2aName">Dein Gespräch mit LocalSpeech</span><span class="hbar-value" data-i18n="sci.c2aVal">45 min</span></div>
+          <div class="hbar-track"><div class="hbar-fill" style="--w:100%"></div></div>
+        </div>
+        <div class="hbar">
+          <div class="hbar-head"><span class="hbar-name" data-i18n="sci.c2bName">Klassenunterricht, rechnerisch</span><span class="hbar-value" data-i18n="sci.c2bVal">&lt; 0,5 min</span></div>
+          <div class="hbar-track"><div class="hbar-fill" style="--w:1.2%"></div></div>
+        </div>
+        <div class="chart-src"><span data-i18n="chart.src">Quelle:</span> <a href="https://www.pedocs.de/volltexte/2013/3521/pdf/Helmke_Helmke_Schrader_Videostudie_2008.pdf" target="_blank" rel="noopener">DESI-Videostudie, DIPF 2008</a> · <span data-i18n="sci.c2note">rechnerisch: Schüler-Sprechanteil ÷ Klassengröße</span></div>
+      </div>
+
+      <div class="chart-card">
+        <h3 data-i18n="sci.c3t">Sprech-Fortschritt in 6 Wochen (IELTS-Punkte)</h3>
+        <div class="chart-sub" data-i18n="sci.c3sub">Kontrollierte Studie: Lernende mit KI-Gesprächspartner verbesserten sich rund 2,5-mal so stark.</div>
+        <div class="hbar hbar-hero">
+          <div class="hbar-head"><span class="hbar-name" data-i18n="sci.c3aName">Mit KI-Gesprächspartner</span><span class="hbar-value" data-i18n="sci.c3aVal">+0,72</span></div>
+          <div class="hbar-track"><div class="hbar-fill" style="--w:100%"></div></div>
+        </div>
+        <div class="hbar">
+          <div class="hbar-head"><span class="hbar-name" data-i18n="sci.c3bName">Klassischer Unterricht</span><span class="hbar-value" data-i18n="sci.c3bVal">+0,28</span></div>
+          <div class="hbar-track"><div class="hbar-fill" style="--w:39%"></div></div>
+        </div>
+        <div class="chart-src"><span data-i18n="chart.src">Quelle:</span> <a href="https://www.nature.com/articles/s41599-025-05550-z" target="_blank" rel="noopener">Ding &amp; Yusof 2025, Nature HSSC</a></div>
+      </div>
+    </div>
+
+    <div class="bignum-grid">
+      <div class="bignum">
+        <div class="bignum-value" data-i18n="sci.n1v">≈ 33 %</div>
+        <div class="bignum-label"><span data-i18n-html="sci.n1l">der Lernenden haben <strong>Angst, in der Fremdsprache zu sprechen</strong>. Mit einer KI übst du, ohne dass jemand urteilt — das senkt die Sprechangst nachweislich.</span></div>
+      </div>
+      <div class="bignum">
+        <div class="bignum-value" data-i18n="sci.n2v">3 %</div>
+        <div class="bignum-label"><span data-i18n-html="sci.n2l">der Teilnehmenden schließen ihren Online-Kurs ab. Darum setzt LocalSpeech nicht auf Lektionen, sondern auf <strong>Gespräche, zu denen du zurückkommst</strong>.</span></div>
+      </div>
+      <div class="bignum">
+        <div class="bignum-value" data-i18n="sci.n3v">96 %</div>
+        <div class="bignum-label"><span data-i18n-html="sci.n3l">der Schul-Apps senden Schülerdaten an Dritte. LocalSpeech sendet: <strong>nichts</strong>. Es gibt keinen Server, der etwas empfangen könnte.</span></div>
+      </div>
+      <div class="bignum">
+        <div class="bignum-value" data-i18n="sci.n4v">4,5 Jahre</div>
+        <div class="bignum-label"><span data-i18n-html="sci.n4l">später tritt Demenz bei Menschen auf, die eine <strong>zweite Sprache</strong> sprechen — unabhängig von Bildung und Herkunft.</span></div>
+      </div>
+    </div>
+
+    <details id="quellen" class="sources">
+      <summary data-i18n="sci.sourcesH">Quellen &amp; Studien</summary>
+      <ol>
+        <li>Karpicke, J. D. &amp; Roediger, H. L. (2008): The Critical Importance of Retrieval for Learning. <em>Science</em> 319, 966–968 — 80 % vs. 36 % Behaltensleistung nach 1 Woche (Fremdsprachen-Vokabeln). <a href="https://www.science.org/doi/10.1126/science.1152408" target="_blank" rel="noopener">science.org</a>. Flankierend: Adesope et al. (2017), <em>Review of Educational Research</em> 87(3), Metaanalyse über 272 Studien, g = 0,61; Mackey &amp; Goo (2007), Metaanalyse: Interaktion/Konversation, d = 1,09.</li>
+        <li>DESI-Videostudie Englischunterricht (105 Klassen): Helmke, Helmke, Schrader et al. (2008), DIPF — Lehrkraft-Sprechanteil 68 %, doppelt so hoch wie alle Schüler zusammen. <a href="https://www.pedocs.de/volltexte/2013/3521/pdf/Helmke_Helmke_Schrader_Videostudie_2008.pdf" target="_blank" rel="noopener">pedocs.de</a> · „&lt; 30 s“ = rechnerisch: Schüler-Gesamtsprechzeit ÷ 25 Lernende.</li>
+        <li>Ding, D. &amp; Yusof, A. M. B. (2025): AI-powered conversation bots — L2 speaking skills &amp; speaking anxiety. <em>Humanities and Social Sciences Communications</em> (Nature Portfolio), n = 60, +0,72 vs. +0,28 IELTS-Punkte. <a href="https://www.nature.com/articles/s41599-025-05550-z" target="_blank" rel="noopener">nature.com</a></li>
+        <li>Horwitz, E. K. (2001): Language anxiety and achievement. <em>Annual Review of Applied Linguistics</em> 21, 112–126 — rund ein Drittel der Lernenden mit mindestens moderater Sprechangst. <a href="https://files.eric.ed.gov/fulltext/EJ1078777.pdf" target="_blank" rel="noopener">eric.ed.gov</a></li>
+        <li>Reich, J. &amp; Ruipérez-Valiente, J. A. (2019): The MOOC Pivot. <em>Science</em> 363, 130–131 — 3,13 % Abschlussquote (565 Kurse, 12,7 Mio. Registrierungen). <a href="https://www.science.org/doi/10.1126/science.aav7958" target="_blank" rel="noopener">science.org</a></li>
+        <li>Internet Safety Labs (2022): K-12 EdTech Safety Benchmark (1.357 Apps) — 96 % teilen Schülerdaten mit Dritten. <a href="https://internetsafetylabs.org/blog/news-press/isl-research-reveals-96-of-school-apps-send-student-data-to-third-parties/" target="_blank" rel="noopener">internetsafetylabs.org</a>. Ähnlich: Human Rights Watch (2022), 89 % von 164 EdTech-Produkten weltweit.</li>
+        <li>Alladi, S., Bak, T. H. et al. (2013): Bilingualism delays age at onset of dementia. <em>Neurology</em> 81(22), n = 648 — 4,5 Jahre; unabhängig repliziert (Bialystok et al. 2007: 4,1 Jahre). <a href="https://pubmed.ncbi.nlm.nih.gov/24198291/" target="_blank" rel="noopener">pubmed.gov</a></li>
+        <li>ITU (2024): Facts and Figures — 2,6 Mrd. Menschen (32 % der Weltbevölkerung) sind offline. <a href="https://www.itu.int/itu-d/reports/statistics/2024/11/10/ff24-internet-use/" target="_blank" rel="noopener">itu.int</a></li>
+        <li>Economist Intelligence Unit (2012): Competing across borders (572 Führungskräfte) — ~50 % berichten geplatzte Auslandsgeschäfte durch Missverständnisse; 47 % erhalten zu wenig Sprachtraining. <a href="https://www.ibs-b.hu/documents/278/Economist_Intelligence_Unit_-_Competing_across_borders_2012.pdf" target="_blank" rel="noopener">EIU-Report (PDF)</a></li>
+      </ol>
+    </details>
+  </section>
+
+  <section id="features" class="section">
+    <h2 data-i18n="features.h2">Warum LocalSpeech?</h2>
+    <p class="section-sub" data-i18n="features.sub">Sprechen verlernt man leise. LocalSpeech gibt dir jeden Tag ein echtes Gespräch zurück.</p>
+    <div class="grid features-grid">
+      <div class="card">
+        <div class="card-icon">🔒</div>
+        <h3 data-i18n="features.f1t">Radikal privat</h3>
+        <p data-i18n-html="features.f1p">Spracherkennung, KI und Stimme laufen <strong>lokal auf deinem Gerät</strong>. Es gibt keinen Server, der mithört — technisch unmöglich, nicht nur versprochen.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">💶</div>
+        <h3 data-i18n="features.f2t">Für immer kostenlos</h3>
+        <p data-i18n="features.f2p">Kein Abo, kein Konto, keine Paywall, keine „Premium“-Stufe. Du zahlst keinen Cent — heute nicht und später nicht.</p>
+      </div>
+     
+      <div class="card">
+        <div class="card-icon">⚡</div>
+        <h3 data-i18n="features.f4t">Passt sich deiner Hardware an</h3>
+        <p data-i18n="features.f4p">LocalSpeech prüft dein Gerät und empfiehlt das passende Modell — vom Laptop bis zur Gaming-GPU. Du entscheidest.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🗣️</div>
+        <h3 data-i18n="features.f5t">5 Sprachen, echte Stimmen</h3>
+        <p data-i18n="features.f5p">Englisch, Spanisch, Französisch, Italienisch und Portugiesisch — mit realistischer Sprachausgabe.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🎭</div>
+        <h3 data-i18n="features.f6t">Szenarien, die zählen</h3>
+        <p data-i18n="features.f6p">Small Talk, Vorstellungsgespräch, Restaurant, Business-Meeting, Diskussion — trainiere genau die Situationen, die dir im Alltag fehlen.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">✨</div>
+        <h3 data-i18n="features.f7t">Sprich mit Legenden</h3>
+        <p data-i18n="features.f7p">Sprich mit Albert, da Vinci und weiteren Legenden — animierte Porträts antworten lippensynchron ganz in ihrem Charakter. Alle komplett kostenlos.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="how" class="section">
+    <h2 data-i18n="how.h2">In drei Schritten zum Gespräch</h2>
+    <div class="grid steps-grid">
+      <div class="card step">
+        <div class="step-num">1</div>
+        <h3 data-i18n="how.s1t">Sprachen wählen</h3>
+        <p data-i18n="how.s1p">Sag LocalSpeech, welche Sprache du sprichst und welche du lernen willst — die App prüft nebenbei, was dein Gerät kann.</p>
+      </div>
+      <div class="card step">
+        <div class="step-num">2</div>
+        <h3 data-i18n="how.s2t">Einmalig laden</h3>
+        <p data-i18n="how.s2p">Die Modelle werden ein einziges Mal heruntergeladen und sicher im Browser gespeichert. Beim nächsten Besuch sind sie sofort da.</p>
+      </div>
+      <div class="card step">
+        <div class="step-num">3</div>
+        <h3 data-i18n="how.s3t">Drauflos reden</h3>
+        <p data-i18n="how.s3p">Mikro an, Szenario wählen, sprechen. Die KI hört zu, antwortet mit natürlicher Stimme und hält das Gespräch am Laufen.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="faq" class="section">
+    <h2 data-i18n="faq.h2">Häufige Fragen</h2>
+    <div class="faq">
+      <details>
+        <summary data-i18n="faq.q1">Was kostet LocalSpeech?</summary>
+        <p data-i18n="faq.a1">Nichts. Kein Abo, kein Konto, keine Paywall — alle Gespräche, Sprachen und Legenden sind komplett kostenlos.</p>
+      </details>
+      <details>
+        <summary data-i18n="faq.q2">Welche Browser werden unterstützt?</summary>
+        <p data-i18n="faq.a2">Am besten funktionieren aktuelle Versionen von Chrome und Edge (sie unterstützen WebGPU, die Technik hinter dem lokalen KI-Modell). Firefox und Safari ziehen gerade nach.</p>
+      </details>
+      <details>
+        <summary data-i18n="faq.q3">Wie groß sind die Downloads?</summary>
+        <p data-i18n="faq.a3">Je nach gewähltem Modell zwischen etwa 0,5 GB und 5 GB — einmalig. Danach sind die Modelle im Browser gespeichert und werden beim nächsten Besuch sofort wiedergefunden.</p>
+      </details>
+      <details>
+        <summary data-i18n="faq.q4">Funktioniert es wirklich offline?</summary>
+        <p data-i18n="faq.a4">Ja. Nach dem ersten Laden der Seite und der Modelle brauchst du keine Internetverbindung mehr. Erkennung, Antwort und Stimme entstehen komplett auf deinem Gerät.</p>
+      </details>
+      <details>
+        <summary data-i18n="faq.q5">Werden meine Gespräche gespeichert oder analysiert?</summary>
+        <p data-i18n="faq.a5">Nein. Deine Aufnahmen und Gespräche verlassen dein Gerät nie. Es gibt keine Konten, kein Tracking und keine Übertragung an Server.</p>
+      </details>
+      <details>
+        <summary data-i18n="faq.q6">Welche Sprachen kann ich lernen?</summary>
+        <p data-i18n="faq.a6">Englisch, Spanisch, Französisch, Italienisch und Portugiesisch — weitere folgen. Das Niveau lässt sich von A2 bis C1 einstellen, die Oberfläche gibt es u. a. auf Deutsch, Englisch und Spanisch.</p>
+      </details>
+      <details>
+        <summary data-i18n="faq.q7">Wie finanziert sich LocalSpeech?</summary>
+        <p data-i18n-html="faq.a7">Durch freiwillige <a href="#unterstuetzen">Unterstützung</a>. Weil die KI auf deinem Gerät läuft, haben wir fast keine laufenden Kosten — dein Konto, deine Daten oder deine Aufmerksamkeit sind ausdrücklich nicht unser Geschäftsmodell.</p>
+      </details>
+    </div>
+  </section>
+
+  <section id="unterstuetzen" class="section support-section">
+    <div class="support-inner">
+      <div class="donate-heart" aria-hidden="true">♥</div>
+      <h2 data-i18n="support.h2">LocalSpeech bleibt für alle kostenlos. Hilf mit, es am Leben zu halten.</h2>
+      <p class="section-sub" data-i18n="support.p">Die KI läuft auf deinem Gerät — deshalb gibt es keine Serverkosten und kein Abo, und die App bleibt für alle kostenlos. Dein freiwilliger Beitrag fließt direkt in Entwicklung, neue Sprachen und neue Stimmen.</p>
+
+      <div class="support-card">
+        <div id="support-choose">
+          <div class="support-amounts" role="group" aria-label="Betrag wählen" data-i18n-attr="aria-label:support.amountAria">
+            <button class="support-amount" type="button" data-amount="300" aria-pressed="false">3 €</button>
+            <button class="support-amount is-active" type="button" data-amount="500" aria-pressed="true">5 €</button>
+            <button class="support-amount" type="button" data-amount="1000" aria-pressed="false">10 €</button>
+            <label class="support-custom-wrap">
+              <input id="support-custom" class="support-custom" type="number" min="1" max="1000" step="1" inputmode="decimal" placeholder="…" aria-label="Eigener Betrag in Euro" data-i18n-attr="placeholder:support.custom;aria-label:support.customAria" />
+              <span class="support-custom-cur" aria-hidden="true">€</span>
+            </label>
+          </div>
+          <button id="support-start" class="btn btn-primary btn-lg support-cta" type="button">Unterstützen</button>
+        </div>
+
+        <div id="support-pay" hidden>
+          <div class="support-payhead">
+            <button id="support-back" class="support-back" type="button" data-i18n-attr="aria-label:support.back">
+              <span aria-hidden="true">←</span>
+              <span data-i18n="support.backLabel">Betrag ändern</span>
+            </button>
+            <span class="support-chosen-wrap">
+              <span class="support-chosen-label" data-i18n="support.chosenLabel">Dein Beitrag</span>
+              <strong id="support-chosen" class="support-chosen">5 €</strong>
+            </span>
+          </div>
+          <div id="support-element"></div>
+          <button id="support-submit" class="btn btn-primary btn-lg support-cta" type="button">Jetzt beitragen</button>
+          <p class="support-secure" data-i18n="support.secure">🔒 Sichere Zahlung über Stripe · Karte, PayPal, Apple/Google Pay, SEPA u. a.</p>
+          <p class="support-trust" data-i18n="support.trust">Kein Konto nötig. Deine Zahlungsdaten gibst du direkt bei Stripe ein — sie erreichen unseren Server nie.</p>
+        </div>
+
+        <!-- Bewusst ausserhalb von #support-pay: Fehler koennen schon beim
+             Auswahl-Schritt auftreten (z. B. Server nicht erreichbar), waehrend
+             #support-pay noch ausgeblendet ist. -->
+        <p id="support-error" class="support-error" role="alert" hidden></p>
+
+        <div id="support-success" hidden>
+          <div class="support-check" aria-hidden="true">✓</div>
+          <h3 data-i18n="support.success.title">Danke für deine Unterstützung ♥</h3>
+          <p data-i18n="support.success.body">Du hilfst, LocalSpeech für alle kostenlos und privat zu halten.</p>
+        </div>
+
+        <p id="support-soon" class="support-soon" data-i18n="support.soon" hidden>Die Unterstützungs-Funktion wird gerade eingerichtet — schau bald wieder vorbei. 💛</p>
+      </div>
+
+      <p class="donate-note" data-i18n="support.note">Unterstützen ist freiwillig — LocalSpeech funktioniert immer vollständig, für alle.</p>
+    </div>
+  </section>
+
+  <section class="section cta-section">
+    <h2 data-i18n="cta.h2">Bereit für dein erstes Gespräch?</h2>
+    <a class="btn btn-primary btn-lg" href="/app.html" data-i18n="cta.btn">Kostenlos loslegen →</a>
+  </section>
+
+  <footer class="footer">
+    <div data-i18n="footer.tagline">© 2026 LocalSpeech · Sprachen sprechen · Frei · Offline · Kostenlos</div>
+    <div class="footer-links">
+      <a href="#unterstuetzen" data-i18n="footer.support">Unterstützen</a>
+      <a href="#quellen" data-i18n="footer.sources">Quellen</a>
+      <a href="#/impressum" data-i18n="footer.imprint">Impressum</a>
+      <a href="#/datenschutz" data-i18n="footer.privacy">Datenschutz</a>
+      <a href="#/nutzung" data-i18n="footer.terms">Nutzungsbedingungen</a>
+      <a href="#/lizenzen" data-i18n="footer.licenses">Lizenzen</a>
+      <a href="https://github.com/b3002025/browserofflineai" target="_blank" rel="noopener" data-i18n="footer.source">Quelltext</a>
+    </div>
+  </footer>
+</div>
+
+<!-- ======================= IMPRESSUM ======================= -->
+<div id="page-impressum" class="legal-view" hidden>
+  <div class="legal-wrap">
+    <a class="legal-back" href="#/" data-i18n="legal.back">← Zurück zur Startseite</a>
+    <div class="legal-head">
+      <span class="legal-kicker" data-i18n="legal.kicker">Rechtliches</span>
+      <h1 data-i18n="impressum.h1">Impressum</h1>
+    </div>
+
+    <h2 data-i18n="impressum.providerHeading">Angaben gemäß § 5 DDG</h2>
+    <p>
+      Chris Velten<br />
+      Im Stockach 5<br />
+      73235 Weilheim an der Teck<br />
+      <span data-i18n="impressum.country">Deutschland</span>
+    </p>
+
+    <h2 data-i18n="impressum.contactHeading">Kontakt</h2>
+    <p>
+      <span data-i18n="impressum.phoneLabel">Telefon:</span> +49 177 6322036<br />
+      <span data-i18n="impressum.emailLabel">E-Mail:</span> <a href="mailto:auctor.software@gmx.de">auctor.software@gmx.de</a>
+    </p>
+
+    <h2 data-i18n="impressum.contentLiabilityHeading">Haftung für Inhalte und KI-generierte Ausgaben</h2>
+    <p data-i18n="impressum.contentLiabilityP1">
+      LocalSpeech ist ein kostenloses Lernwerkzeug. Die Gesprächsinhalte werden von
+      einem KI-Sprachmodell erzeugt, das vollständig lokal auf Ihrem Gerät läuft.
+      Diese Ausgaben sind maschinell generiert und können sachlich falsch,
+      unvollständig, veraltet oder unangemessen sein; sie geben nicht die Auffassung
+      des Betreibers wieder und stellen insbesondere keine Rechts-, Medizin-,
+      Finanz- oder sonstige Fachberatung dar. Die Nutzung erfolgt auf eigene
+      Verantwortung — verlassen Sie sich nicht ungeprüft auf KI-Antworten.
+    </p>
+    <p data-i18n="impressum.contentLiabilityP2">
+      Die im Legenden-Modus wählbaren Figuren sind frei erfundene KI-Nachbildungen
+      verstorbener Persönlichkeiten – weder die realen Personen noch echte Zitate.
+      Die Porträts sind eigene, stilisierte Illustrationen.
+    </p>
+    <p data-i18n="impressum.contentLiabilityP3">
+      Für die von der KI erzeugten Inhalte übernimmt der Betreiber keine Haftung. Da
+      LocalSpeech unentgeltlich bereitgestellt wird, haftet der Betreiber – soweit
+      gesetzlich zulässig – nur für Vorsatz und grobe Fahrlässigkeit. Die Haftung für
+      Schäden aus der Verletzung des Lebens, des Körpers oder der Gesundheit sowie
+      nach zwingenden gesetzlichen Vorschriften (z. B. Produkthaftungsgesetz) bleibt
+      hiervon unberührt.
+    </p>
+
+    <h2 data-i18n="impressum.linksLiabilityHeading">Haftung für Links</h2>
+    <p data-i18n="impressum.linksLiabilityP">
+      Unser Angebot enthält Links zu externen Websites Dritter, auf deren Inhalte
+      wir keinen Einfluss haben. Für die Inhalte der verlinkten Seiten ist stets der
+      jeweilige Anbieter verantwortlich.
+    </p>
+
+    <nav class="legal-nav">
+      <a href="#/datenschutz" data-i18n="footer.privacy">Datenschutz</a>
+      <a href="#/nutzung" data-i18n="footer.terms">Nutzungsbedingungen</a>
+      <a href="#/lizenzen" data-i18n="footer.licenses">Lizenzen</a>
+      <a href="https://github.com/b3002025/browserofflineai" target="_blank" rel="noopener" data-i18n="footer.source">Quelltext</a>
+    </nav>
+  </div>
+</div>
+
+<!-- ======================= DATENSCHUTZ ======================= -->
+<!-- Fliesstext liegt vollstaendig in src/legal-i18n.ts (6 Sprachen). Hier
+     stehen nur Struktur und die sprachneutralen Blöcke (Anschriften). -->
+<div id="page-datenschutz" class="legal-view" hidden>
+  <div class="legal-wrap">
+    <a class="legal-back" href="#/" data-i18n="legal.back">← Zurück zur Startseite</a>
+    <div class="legal-head">
+      <span class="legal-kicker" data-i18n="legal.kicker">Rechtliches</span>
+      <h1 data-i18n="privacy.h1">Datenschutzerklärung</h1>
+      <p class="legal-updated" data-i18n="privacy.updated">Stand: 29. Juli 2026</p>
+    </div>
+
+    <h2 data-i18n="privacy.s1.h">1. Verantwortlicher</h2>
+    <p data-i18n="privacy.s1.p">Verantwortlich für die Datenverarbeitung auf dieser Website ist:</p>
+    <p>
+      Chris Velten<br />
+      Im Stockach 5<br />
+      73235 Weilheim an der Teck<br />
+      <span data-i18n="impressum.country">Deutschland</span><br />
+      <span data-i18n="impressum.phoneLabel">Telefon:</span> +49 177 6322036<br />
+      <span data-i18n="impressum.emailLabel">E-Mail:</span> <a href="mailto:auctor.software@gmx.de">auctor.software@gmx.de</a>
+    </p>
+
+    <h2 data-i18n="privacy.s2.h">2. Grundprinzip: Verarbeitung auf Ihrem Gerät</h2>
+    <p data-i18n-html="privacy.s2.p"></p>
+
+    <h2 data-i18n="privacy.s3.h">3. Zugriff auf das Mikrofon</h2>
+    <p data-i18n-html="privacy.s3.p"></p>
+
+    <h2 data-i18n="privacy.s4.h">4. Bereitstellung der Website und Server-Logfiles</h2>
+    <p data-i18n-html="privacy.s4.p"></p>
+    <ul data-i18n-html="privacy.s4.list"></ul>
+
+    <h2 data-i18n="privacy.s5.h">5. Herunterladen der KI-Modelle</h2>
+    <p data-i18n-html="privacy.s5.p1"></p>
+    <p>Hugging Face, Inc., 20 Jefferson St, Suite 300, San Francisco, CA 94105, USA</p>
+    <p data-i18n-html="privacy.s5.p2"></p>
+    <ul data-i18n-html="privacy.s5.list"></ul>
+
+    <h2 data-i18n="privacy.s6.h">6. Zahlungsabwicklung bei freiwilliger Unterstützung (Stripe)</h2>
+    <p data-i18n-html="privacy.s6.p"></p>
+
+    <h3 data-i18n="privacy.s61.h">6.1 Unsere Serverfunktion beim Zahlungsstart</h3>
+    <p data-i18n-html="privacy.s61.p1"></p>
+    <p data-i18n-html="privacy.s61.p2"></p>
+    <p data-i18n-html="privacy.s61.p3"></p>
+
+    <h2 data-i18n="privacy.s7.h">7. Lokale Speicherung auf Ihrem Gerät</h2>
+    <p data-i18n-html="privacy.s7.p"></p>
+    <p data-i18n-html="privacy.s7.p2"></p>
+
+    <h2 data-i18n="privacy.s8.h">8. Legenden-Modus und eigene Charaktere</h2>
+    <p data-i18n-html="privacy.s8.p"></p>
+
+    <h2 data-i18n="privacy.s9.h">9. Kein Tracking, keine Werbe-Cookies</h2>
+    <p data-i18n-html="privacy.s9.p"></p>
+    <p data-i18n-html="privacy.s9.p2"></p>
+    <p data-i18n-html="privacy.s9.p3"></p>
+
+    <h2 data-i18n="privacy.s10.h">10. Kontaktaufnahme</h2>
+    <p data-i18n-html="privacy.s10.p"></p>
+
+    <h2 data-i18n="privacy.s11.h">11. Ihre Rechte</h2>
+    <p data-i18n-html="privacy.s11.p"></p>
+
+    <h2 data-i18n="privacy.s12.h">12. Beschwerderecht bei der Aufsichtsbehörde</h2>
+    <p data-i18n-html="privacy.s12.p"></p>
+    <p>
+      Der Landesbeauftragte für den Datenschutz und die Informationsfreiheit
+      Baden-Württemberg<br />
+      Lautenschlagerstraße 20, 70173 Stuttgart<br />
+      <a href="https://www.baden-wuerttemberg.datenschutz.de" target="_blank" rel="noopener">www.baden-wuerttemberg.datenschutz.de</a>
+    </p>
+
+    <h2 data-i18n="privacy.s13.h">13. Aktualität</h2>
+    <p data-i18n-html="privacy.s13.p"></p>
+
+    <nav class="legal-nav">
+      <a href="#/impressum" data-i18n="footer.imprint">Impressum</a>
+      <a href="#/nutzung" data-i18n="footer.terms">Nutzungsbedingungen</a>
+      <a href="#/lizenzen" data-i18n="footer.licenses">Lizenzen</a>
+      <a href="https://github.com/b3002025/browserofflineai" target="_blank" rel="noopener" data-i18n="footer.source">Quelltext</a>
+    </nav>
+  </div>
+</div>
+
+<!-- ======================= NUTZUNGSBEDINGUNGEN ======================= -->
+<!-- Fliesstext vollstaendig in src/legal-i18n.ts (6 Sprachen). -->
+<div id="page-nutzung" class="legal-view" hidden>
+  <div class="legal-wrap">
+    <a class="legal-back" href="#/" data-i18n="legal.back">← Zurück zur Startseite</a>
+    <div class="legal-head">
+      <span class="legal-kicker" data-i18n="legal.kicker">Rechtliches</span>
+      <h1 data-i18n="terms.h1">Nutzungsbedingungen</h1>
+      <p class="legal-updated" data-i18n="terms.updated">Stand: 29. Juli 2026</p>
+    </div>
+    <p class="legal-lead" data-i18n-html="terms.lead"></p>
+
+    <div class="legal-numbered">
+      <section class="legal-sec">
+        <h2 data-i18n="terms.s1.h">Gegenstand</h2>
+        <p data-i18n-html="terms.s1.p"></p>
+      </section>
+
+      <section class="legal-sec">
+        <h2 data-i18n="terms.s2.h">Kostenlose Bereitstellung</h2>
+        <p data-i18n-html="terms.s2.p"></p>
+      </section>
+
+      <section class="legal-sec">
+        <h2 data-i18n="terms.s3.h">KI-generierte Inhalte</h2>
+        <p data-i18n-html="terms.s3.p"></p>
+      </section>
+
+      <section class="legal-sec">
+        <h2 data-i18n="terms.s4.h">Legenden-Modus</h2>
+        <p data-i18n-html="terms.s4.p"></p>
+      </section>
+
+      <section class="legal-sec">
+        <h2 data-i18n="terms.s5.h">Ihre Pflichten</h2>
+        <p data-i18n-html="terms.s5.p"></p>
+      </section>
+
+      <section class="legal-sec">
+        <h2 data-i18n="terms.s6.h">Rechte an Inhalten und Modellen</h2>
+        <p data-i18n-html="terms.s6.p"></p>
+      </section>
+
+      <section class="legal-sec">
+        <h2 data-i18n="terms.s7.h">Haftung</h2>
+        <p data-i18n-html="terms.s7.p"></p>
+      </section>
+
+      <section class="legal-sec">
+        <h2 data-i18n="terms.s8.h">Änderungen dieser Bedingungen</h2>
+        <p data-i18n-html="terms.s8.p"></p>
+      </section>
+
+      <section class="legal-sec">
+        <h2 data-i18n="terms.s9.h">Anwendbares Recht &amp; Schlussbestimmungen</h2>
+        <p data-i18n-html="terms.s9.p"></p>
+      </section>
+    </div>
+
+    <nav class="legal-nav">
+      <a href="#/impressum" data-i18n="footer.imprint">Impressum</a>
+      <a href="#/datenschutz" data-i18n="footer.privacy">Datenschutz</a>
+      <a href="#/lizenzen" data-i18n="footer.licenses">Lizenzen</a>
+      <a href="https://github.com/b3002025/browserofflineai" target="_blank" rel="noopener" data-i18n="footer.source">Quelltext</a>
+    </nav>
+  </div>
+</div>
+
+<!-- ======================= LIZENZEN ======================= -->
+<!-- Die Paket- und Modell-Tabellen werden aus src/generated/licenses.ts
+     gefuellt (erzeugt von scripts/collect-licenses.mjs). Bewusst nicht im
+     Markup gepflegt: eine handgetippte Liste veraltet beim naechsten
+     npm install, und eine veraltete Namensnennung ist so gut wie keine. -->
+<div id="page-lizenzen" class="legal-view" hidden>
+  <div class="legal-wrap">
+    <a class="legal-back" href="#/" data-i18n="legal.back">← Zurück zur Startseite</a>
+    <div class="legal-head">
+      <span class="legal-kicker" data-i18n="licenses.kicker">Offener Quelltext</span>
+      <h1 data-i18n="licenses.h1">Lizenzen</h1>
+    </div>
+    <p class="legal-lead" data-i18n-html="licenses.lead"></p>
+
+    <h2 data-i18n="licenses.app.h">LocalSpeech selbst</h2>
+    <p data-i18n-html="licenses.app.p"></p>
+    <p class="license-links">
+      <a href="https://github.com/b3002025/browserofflineai" target="_blank" rel="noopener" data-i18n="licenses.app.source">Quelltext auf GitHub ansehen</a>
+      <a href="/license.txt" target="_blank" rel="noopener" data-i18n="licenses.app.license">Lizenztext (GPL-3.0) lesen</a>
+      <a href="/third-party-licenses.txt" target="_blank" rel="noopener" data-i18n="licenses.full">Vollständige Lizenztexte aller Komponenten</a>
+    </p>
+
+    <h2 data-i18n="licenses.pkg.h">Verwendete Bibliotheken</h2>
+    <p data-i18n-html="licenses.pkg.p"></p>
+    <div id="licenses-packages" class="license-table"></div>
+
+    <h2 data-i18n="licenses.model.h">KI-Modelle</h2>
+    <p data-i18n-html="licenses.model.p"></p>
+    <div id="licenses-models" class="license-table"></div>
+
+    <nav class="legal-nav">
+      <a href="#/impressum" data-i18n="footer.imprint">Impressum</a>
+      <a href="#/datenschutz" data-i18n="footer.privacy">Datenschutz</a>
+      <a href="#/nutzung" data-i18n="footer.terms">Nutzungsbedingungen</a>
+    </nav>
+  </div>
+</div>
+
+<script type="module" src="/src/main.ts"></script>
+</body>
+</html>

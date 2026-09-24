@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LocalSpeech — Portrait-Vorschau (nur Entwicklung)</title>
+  <style>
+    body { background: #0b0b0d; color: #f4f4f5; font-family: Inter, -apple-system, sans-serif; padding: 24px; }
+    h1 { font-size: 1.1rem; margin-bottom: 16px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 14px; }
+    .cell { background: #121214; border: 1px solid rgba(255,255,255,0.09); border-radius: 14px; padding: 12px; text-align: center; }
+    .cell .p { width: 130px; height: 130px; margin: 0 auto 8px; border-radius: 50%; overflow: hidden; }
+    .cell svg { width: 100%; height: 100%; display: block; }
+    .cell .n { font-weight: 700; font-size: 0.9rem; }
+    .cell .t { font-size: 0.75rem; color: #9d9da3; }
+    .controls { margin-bottom: 14px; display: flex; gap: 10px; align-items: center; }
+    button { background: #1a1a1d; color: inherit; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h1>Portrait-Vorschau (Dev-Seite — landet nicht im Build)</h1>
+  <div class="controls">
+    <button id="animate">Sprech-Animation an/aus (Test-Sinus)</button>
+  </div>
+  <div class="grid" id="grid"></div>
+  <script type="module">
+    import { PERSONAS } from '/src/personas.ts';
+    import { AvatarStage } from '/src/ui/avatar.ts';
+
+    const grid = document.getElementById('grid');
+    const stages = [];
+    let animating = new URLSearchParams(location.search).has('speak');
+    // Kuenstliches Sprachsignal, damit man den Lippensync ohne TTS sieht.
+    const fakeSpeech = () => {
+      if (!animating) return { rms: 0, centroid: 0 };
+      const t = performance.now() / 1000;
+      const talking = (Math.sin(t * 2.2) + 1) / 2 > 0.25;
+      const rms = talking ? 0.05 + 0.1 * Math.abs(Math.sin(t * 9.7) * Math.sin(t * 5.3)) : 0;
+      const centroid = 0.2 + 0.25 * (Math.sin(t * 3.1) + 1) / 2;
+      return { rms, centroid };
+    };
+
+    const only = new URLSearchParams(location.search).get('only');
+    if (only) {
+      const st = document.createElement('style');
+      st.textContent = '.cell .p { width: 420px; height: 420px; } .grid { grid-template-columns: repeat(auto-fill, minmax(460px, 1fr)); }';
+      document.head.appendChild(st);
+    }
+    for (const p of PERSONAS.filter((p) => !only || only.split(',').includes(p.id))) {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.innerHTML = `<div class="p"></div><div class="n">${p.name}</div><div class="t">${p.years} · ${p.id}</div>`;
+      grid.appendChild(cell);
+      const stage = new AvatarStage(cell.querySelector('.p'), fakeSpeech);
+      stage.setPortrait(p.portrait);
+      stage.setState(animating ? 'speaking' : 'idle');
+      stage.start();
+      stages.push(stage);
+    }
+
+    document.getElementById('animate').addEventListener('click', () => {
+      animating = !animating;
+      for (const s of stages) s.setState(animating ? 'speaking' : 'idle');
+    });
+  </script>
+</body>
+</html>

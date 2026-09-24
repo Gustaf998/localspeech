@@ -1,0 +1,18 @@
+{
+  "name": "LocalSpeech — Sprachen sprechen. Frei. Offline. Kostenlos.",
+  "short_name": "LocalSpeech",
+  "description": "Echte Gespräche in 6 Sprachen mit realistischer KI-Stimme — 100 % lokal in deinem Browser.",
+  "start_url": "/#/app",
+  "display": "standalone",
+  "background_color": "#0b0f14",
+  "theme_color": "#0b0f14",
+  "lang": "de",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

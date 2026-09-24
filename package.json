@@ -1,0 +1,35 @@
+{
+  "name": "local-speech",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "LocalSpeech — Dein englischer KI-Gesprächspartner. 100 % offline, 100 % kostenlos.",
+  "license": "GPL-3.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/b3002025/browserofflineai.git"
+  },
+  "scripts": {
+    "dev": "vite",
+    "prebuild": "node scripts/collect-licenses.mjs",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "licenses": "node scripts/collect-licenses.mjs",
+    "check:legal": "node scripts/check-legal.mjs"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "^3.5.0",
+    "@stripe/stripe-js": "^9.12.0",
+    "@wllama/wllama": "^3.5.1",
+    "@wllama/wllama-compat": "^3.5.1",
+    "espeak-ng": "^1.0.2",
+    "kokoro-js": "^1.2.1",
+    "pdfjs-dist": "^6.1.200",
+    "stripe": "^22.3.2"
+  },
+  "devDependencies": {
+    "@vercel/node": "^4.0.0",
+    "typescript": "^5.8.0",
+    "vite": "^6.3.0"
+  }
+}

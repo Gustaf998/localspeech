@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LocalSpeech — Gespräch starten</title>
+  <!-- Die App ist reines Werkzeug, kein Landing-Content: nicht indexieren
+       lassen, damit Suchmaschinen die Startseite ausspielen. -->
+  <meta name="robots" content="noindex" />
+  <meta name="theme-color" content="#0b0f14" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+</head>
+<body>
+
+<!-- ======================= APP =======================
+     Eigenes Dokument (nicht mehr eine Ansicht von index.html), damit hier
+     Cross-Origin-Isolation (COOP/COEP) gelten kann und auf der Startseite
+     NICHT: Isolation verschafft der KI SharedArrayBuffer/Threads, blockiert
+     aber die iFrames des Stripe Payment Elements. Header werden pro Dokument
+     ausgeliefert — getrennte Seiten sind daher die einzige Loesung, beides
+     zu bekommen. Siehe public/_headers und vite.config.ts.              -->
+<div id="app">
+  <canvas id="dots" aria-hidden="true"></canvas>
+  <header class="app-header">
+    <div class="header-card">
+      <a class="hc-icon" href="/" title="Zur Startseite" aria-label="Zur Startseite" data-i18n-attr="title:header.home;aria-label:header.home">
+        <svg viewBox="0 0 64 64" aria-hidden="true">
+          <defs>
+            <linearGradient id="hc-grad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#ffffff"/>
+              <stop offset="1" stop-color="#c9c9ce"/>
+            </linearGradient>
+          </defs>
+          <rect width="64" height="64" rx="19" fill="url(#hc-grad)"/>
+          <g stroke="#0a0a0a" stroke-width="5.3" stroke-linecap="round">
+            <line x1="18" y1="24" x2="18" y2="41"/>
+            <line x1="30" y1="15" x2="30" y2="49"/>
+            <line x1="43" y1="21" x2="43" y2="43"/>
+          </g>
+        </svg>
+      </a>
+      <div class="hc-info">
+        <div class="hc-title">LocalSpeech <span class="beta-badge" data-i18n="beta.badge">Beta</span></div>
+        <div class="hc-sub">
+          <select id="scenario-select" title="Szenario" data-i18n-attr="title:header.scenario"></select>
+          <button id="persona-chip" class="persona-chip" type="button" hidden title="Legende verlassen" data-i18n-attr="title:persona.exit"></button>
+          <span class="hc-sep" aria-hidden="true">|</span>
+          <select id="target-lang-select" title="Lernsprache" data-i18n-attr="title:header.targetLang;aria-label:header.targetLang" aria-label="Lernsprache"></select>
+          <span class="hc-sep" aria-hidden="true">|</span>
+          <select id="level-select" title="Sprachniveau" data-i18n-attr="title:header.level"></select>
+        </div>
+      </div>
+      <div class="hc-actions">
+        <button id="btn-personas" class="hc-btn hc-feat hc-legends" title="Mit Legenden sprechen" aria-label="Mit Legenden sprechen" data-i18n-attr="title:persona.open;aria-label:persona.open">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 3.6 13.9 8l4.6.4-3.5 3 1.1 4.5L12 13.5 7.9 15.9 9 11.4l-3.5-3L10.1 8Z"/>
+            <path d="M19.5 3.2l.6 1.5 1.5.6-1.5.6-.6 1.5-.6-1.5-1.5-.6 1.5-.6ZM4.5 16.8l.5 1.3 1.3.5-1.3.5-.5 1.3-.5-1.3-1.3-.5 1.3-.5Z" fill="currentColor" stroke="none"/>
+          </svg>
+        </button>
+        <span class="hc-div" aria-hidden="true"></span>
+        <button id="btn-restart" class="hc-btn" title="Gespräch neu starten" aria-label="Gespräch neu starten" data-i18n-attr="title:header.restart;aria-label:header.restart">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 12a9 9 0 1 1-2.9-6.6"/>
+            <path d="M21 3v6h-6"/>
+          </svg>
+        </button>
+        <button id="btn-settings" class="hc-btn hc-btn-solid" title="Einstellungen" aria-label="Einstellungen" data-i18n-attr="title:header.settings;aria-label:header.settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="4" y1="6" x2="20" y2="6"/>
+            <circle cx="9" cy="6" r="2" fill="currentColor" stroke="none"/>
+            <line x1="4" y1="12" x2="20" y2="12"/>
+            <circle cx="15" cy="12" r="2" fill="currentColor" stroke="none"/>
+            <line x1="4" y1="18" x2="20" y2="18"/>
+            <circle cx="11" cy="18" r="2" fill="currentColor" stroke="none"/>
+          </svg>
+        </button>
+      </div>
+      <div id="status-chip" class="status-chip">Initialisiere …</div>
+    </div>
+  </header>
+
+  <main class="app-main">
+    <div id="chat" class="chat" aria-live="polite"></div>
+
+    <div class="talk-dock">
+      <div id="orb-stage" hidden>
+        <div id="orb-wrap">
+          <button id="orb" class="orb state-loading" aria-label="Aufnahme starten oder stoppen" data-i18n-attr="aria-label:orb.aria">
+            <span class="orb-aura" aria-hidden="true"></span>
+            <span class="orb-ring" aria-hidden="true"></span>
+            <span class="sphere" aria-hidden="true">
+              <span class="band b1"></span>
+              <span class="band b2"></span>
+              <span class="band b3"></span>
+              <span class="sheen"></span>
+            </span>
+          </button>
+        </div>
+        <div id="orb-label" class="orb-label">Modelle werden geladen …</div>
+        <div id="orb-hint" class="orb-hint" data-i18n="orb.immersionEnter" aria-hidden="true">↑ Hochziehen für den Sprech-Modus</div>
+      </div>
+      <div id="context-bar" class="context-bar" hidden>
+        <span class="context-chip">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M14 3v5h5"/><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          </svg>
+          <span id="context-name" class="context-name"></span>
+          <button type="button" id="context-remove" class="context-remove" title="Entfernen" aria-label="Entfernen" data-i18n-attr="title:context.remove;aria-label:context.remove">✕</button>
+        </span>
+      </div>
+      <form id="composer" class="composer">
+        <input id="file-input" type="file" accept=".pdf,application/pdf,.txt,.md,.markdown,.text,.csv,.json,.srt,.vtt,.log,.tsv,.rtf,text/*" hidden />
+        <button type="button" id="btn-orb-mini" class="mini-orb state-loading" title="Sprachgespräch starten" aria-label="Sprachgespräch starten" data-i18n-attr="title:composer.mic;aria-label:composer.mic">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="9" y="2.5" width="6" height="11" rx="3"/>
+            <path d="M5 11a7 7 0 0 0 14 0"/>
+            <path d="M12 18v3M8.5 21h7"/>
+            <line class="mic-slash" x1="4" y1="3.5" x2="20" y2="20.5"/>
+          </svg>
+        </button>
+        <input id="text-input" type="text" placeholder="Nachricht schreiben …" autocomplete="off" data-i18n-attr="placeholder:composer.placeholder" />
+        <button type="button" id="btn-attach" class="attach-btn" title="Datei anhängen" aria-label="Datei anhängen" data-i18n-attr="title:composer.attach;aria-label:composer.attach">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 11.5 12.4 20a5 5 0 0 1-7-7l8-8a3.3 3.3 0 0 1 4.7 4.7l-8 8a1.6 1.6 0 0 1-2.3-2.3l7.4-7.4"/>
+          </svg>
+        </button>
+        <button class="send-btn" type="submit" title="Senden" aria-label="Senden" data-i18n-attr="title:composer.send;aria-label:composer.send">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M3.5 20.3 21.5 12 3.5 3.7l-.01 6.4L14.5 12 3.49 13.9z"/>
+          </svg>
+        </button>
+      </form>
+    </div>
+  </main>
+
+  <!-- Schwebende Fortschritts-Pille: zeigt den Model-Download, ohne die App zu blockieren -->
+  <div id="dl-pill" class="dl-pill" hidden>
+    <svg class="dl-ring" viewBox="0 0 20 20" aria-hidden="true">
+      <circle class="ring-track" cx="10" cy="10" r="8" pathLength="100" />
+      <circle class="ring-val" cx="10" cy="10" r="8" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100" />
+    </svg>
+    <span id="dl-pill-text"></span>
+    <button type="button" id="dl-pill-retry" class="btn btn-ghost" hidden data-i18n="pill.retry">Erneut versuchen</button>
+  </div>
+
+  <!-- Erst-Einrichtung -->
+  <div id="setup" class="overlay" hidden>
+    <div class="panel setup-panel">
+      <div id="setup-step-lang">
+        <h2 data-i18n="setup.welcome">Willkommen bei LocalSpeech 👋</h2>
+        <p class="panel-sub" data-i18n="setup.langSub">Kurze Frage zuerst: Welche Sprache sprichst du — und welche willst du üben?</p>
+        <h3 class="lang-heading" data-i18n="setup.iSpeak">Ich spreche</h3>
+        <div id="native-grid" class="lang-grid"></div>
+        <h3 class="lang-heading" data-i18n="setup.iLearn">Ich will üben</h3>
+        <div id="target-grid" class="lang-grid"></div>
+        <h3 class="lang-heading" data-i18n="setup.tutorName">Name deines Gesprächspartners</h3>
+        <input id="setup-tutor-name" class="name-input" type="text" maxlength="24" autocomplete="off" />
+        <p class="panel-note" data-i18n="setup.tutorNameHint">Nenn ihn, wie du willst — z. B. Sam.</p>
+        <button id="btn-lang-continue" class="btn btn-primary btn-lg btn-block" data-i18n="setup.continue">Weiter →</button>
+      </div>
+      <div id="setup-step-choose" hidden>
+        <button id="btn-setup-back" class="setup-back" type="button" data-i18n="setup.back">← Sprachen ändern</button>
+        <h2 data-i18n="setup.chooseTitle">Wähle dein KI-Modell</h2>
+        <p class="panel-sub" data-i18n="setup.chooseSub">Einmalige Einrichtung: Wir haben dein Gerät geprüft und markieren die Empfehlung.</p>
+        <div id="hw-summary" class="hw-summary"></div>
+        <div id="weak-device-warning" class="weak-device-warning" hidden data-i18n="setup.weakDevice">📱 Auf deinem Gerät läuft LocalSpeech eingeschränkt. Für das beste Erlebnis empfehlen wir einen Laptop, PC oder ein Tablet mit mehr Leistung.</div>
+        <div id="setup-reco" class="setup-reco">
+          <div>
+            <div class="reco-label" data-i18n="setup.recoTitle">Empfohlen für dein Gerät</div>
+            <div class="reco-name" id="reco-name"></div>
+            <div class="reco-desc" id="reco-desc"></div>
+          </div>
+          <div class="reco-size" id="reco-size"></div>
+        </div>
+        <details id="setup-advanced">
+          <summary data-i18n="setup.advanced">Erweitert: anderes Modell wählen</summary>
+          <div class="quality-legend">
+            <span data-i18n="setup.qualityLow">einfacher</span>
+            <span class="ql-bar"></span>
+            <span data-i18n="setup.qualityHigh">stärker &amp; besser</span>
+          </div>
+          <div id="tier-cards" class="tier-cards"></div>
+          <details class="stt-details">
+            <summary data-i18n="setup.sttSummary">Spracherkennung anpassen (optional)</summary>
+            <div id="stt-options" class="stt-options"></div>
+          </details>
+        </details>
+        <div class="setup-total" id="setup-total"></div>
+        <button id="btn-download" class="btn btn-primary btn-lg btn-block">⬇ Download starten</button>
+        <p id="setup-error" class="setup-error" hidden></p>
+        <p class="panel-note" data-i18n="setup.note">Einmaliger Download. Alles bleibt in deinem Browser gespeichert — beim nächsten Besuch geht es sofort los.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Genereller KI-Haftungsausschluss: einmalig nach Onboarding + Modell-
+       Download, bevor das erste echte Gespraech startet. Blockierend (kein
+       Hintergrund-Klick-Schliessen, kein X) — muss aktiv bestaetigt werden. -->
+  <div id="disclaimer-modal" class="overlay" hidden>
+    <div class="panel disclaimer-panel">
+      <div class="panel-head">
+        <h2 data-i18n="disclaimer.title">Bevor es losgeht: ein wichtiger Hinweis</h2>
+      </div>
+      <div class="disclaimer-body" data-i18n-html="disclaimer.body"></div>
+      <button id="btn-disclaimer-accept" class="btn btn-primary btn-lg btn-block" data-i18n="disclaimer.cta">Verstanden, los geht's →</button>
+    </div>
+  </div>
+
+  <!-- Charakter-Galerie: Legenden & Natives (umschaltbar) -->
+  <div id="persona-modal" class="overlay" hidden>
+    <div class="panel persona-panel">
+      <div class="panel-head">
+        <h2 id="persona-title" data-i18n="persona.title">Mit Legenden sprechen</h2>
+        <button id="btn-close-personas" class="icon-btn" title="Schließen" data-i18n-attr="title:settings.close">✕</button>
+      </div>
+      <div class="persona-tabs" role="tablist">
+        <button id="pt-legends" class="pt-tab active" type="button" role="tab" aria-selected="true" data-i18n="persona.tabLegends">Legenden</button>
+        <button id="pt-natives" class="pt-tab" type="button" role="tab" aria-selected="false" data-i18n="persona.tabNatives">Natives</button>
+      </div>
+      <p id="persona-sub" class="panel-sub" data-i18n="persona.sub">Stell die Fragen, die du schon immer stellen wolltest — ganz im Charakter und Wissen ihrer Zeit.</p>
+      <p id="persona-disclaimer" class="persona-disclaimer" data-i18n="persona.disclaimer">✦ Hommage in KI-Form: Alle Figuren sind KI-Nachbildungen verstorbener Persönlichkeiten — keine echten Personen, keine echten Zitate. Alle Antworten sind KI-generiert und frei erfunden.</p>
+      <div id="persona-grid" class="persona-grid"></div>
+    </div>
+  </div>
+
+  <!-- Rechtlicher Vorschalt-Hinweis vor dem allerersten Betreten des
+       Legenden-Modus (einmalig, danach oeffnet der Button direkt die
+       Galerie). Zusaetzliche Risikominderung neben dem Hinweis in der
+       Galerie selbst. -->
+  <div id="persona-gate-modal" class="overlay" hidden>
+    <div class="panel disclaimer-panel">
+      <div class="panel-head">
+        <h2 data-i18n="persona.gate.title">Bevor du eine Legende triffst</h2>
+        <button id="btn-close-persona-gate" class="icon-btn" title="Abbrechen" data-i18n-attr="title:persona.gate.cancel">✕</button>
+      </div>
+      <div class="disclaimer-body" data-i18n-html="persona.gate.body"></div>
+      <button id="btn-persona-gate-accept" class="btn btn-primary btn-lg btn-block" data-i18n="persona.gate.cta">Verstanden, weiter →</button>
+    </div>
+  </div>
+
+  <!-- Eigenen Charakter bauen -->
+  <div id="custom-modal" class="overlay" hidden>
+    <div class="panel custom-panel">
+      <div class="panel-head">
+        <h2 data-i18n="custom.title">Eigenen Charakter erstellen</h2>
+        <button id="btn-close-custom" class="icon-btn" title="Schließen" data-i18n-attr="title:settings.close">✕</button>
+      </div>
+      <p class="panel-sub" data-i18n="custom.sub">Bau dir deinen eigenen Gesprächspartner — bestimme, wer er ist, wie er sich verhält und was er weiß.</p>
+      <div class="custom-layout">
+        <div class="custom-form">
+          <label class="cf-field">
+            <span class="cf-label" data-i18n="custom.name">Name</span>
+            <input id="cf-name" type="text" maxlength="40" autocomplete="off" data-i18n-attr="placeholder:custom.namePh" placeholder="z. B. Frau Keller" />
+          </label>
+          <label class="cf-field">
+            <span class="cf-label" data-i18n="custom.role">Rolle (optional)</span>
+            <input id="cf-role" type="text" maxlength="70" autocomplete="off" data-i18n-attr="placeholder:custom.rolePh" placeholder="z. B. strenger Mathe-Professor" />
+          </label>
+          <div class="cf-field">
+            <span class="cf-label" data-i18n="custom.personality">Persönlichkeit &amp; Verhalten</span>
+            <div id="cf-chips" class="cf-chips"></div>
+            <textarea id="cf-personality" rows="3" data-i18n-attr="placeholder:custom.personalityPh" placeholder="Wie redet und verhält er sich? Ton, Humor, Eigenheiten …"></textarea>
+          </div>
+          <label class="cf-field">
+            <span class="cf-label" data-i18n="custom.knowledge">Wissen &amp; Hintergrund (optional)</span>
+            <textarea id="cf-knowledge" rows="3" data-i18n-attr="placeholder:custom.knowledgePh" placeholder="Worüber weiß er Bescheid? Beruf, Fachgebiet, Backstory …"></textarea>
+          </label>
+          <div class="cf-field">
+            <span class="cf-label" data-i18n="custom.accent">Farbe</span>
+            <div id="cf-colors" class="cf-colors"></div>
+          </div>
+          <div class="cf-field">
+            <span class="cf-label" data-i18n="settings.voiceHead">Stimme</span>
+            <div class="cf-voice-row">
+              <select id="cf-voice"></select>
+              <button id="btn-cf-voice-preview" class="btn btn-ghost btn-sm" type="button" data-i18n="settings.preview">▶ Anhören</button>
+            </div>
+          </div>
+        </div>
+        <aside class="custom-preview">
+          <span class="cp-label" data-i18n="custom.preview">Vorschau</span>
+          <span id="cp-orb" class="pc-orb pc-orb-tint cp-orb"><span class="sphere"><span class="band b1"></span><span class="band b2"></span><span class="band b3"></span><span class="sheen"></span></span></span>
+          <span id="cp-name" class="cp-name">Dein Charakter</span>
+          <span id="cp-role" class="cp-role"></span>
+        </aside>
+      </div>
+      <div class="custom-actions">
+        <button id="cf-save" class="btn btn-primary btn-lg" type="button" data-i18n="custom.save">Erstellen &amp; sprechen</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Einstellungen -->
+  <div id="settings-modal" class="overlay" hidden>
+    <div class="panel settings-panel">
+      <!-- Kopf bleibt beim Scrollen stehen: der Schliessen-Knopf ist sonst
+           genau dann weg, wenn man unten in der Modell-Liste steht. -->
+      <div class="panel-head settings-head">
+        <h2 data-i18n="settings.title">Einstellungen</h2>
+        <button id="btn-close-settings" class="icon-btn" title="Schließen" data-i18n-attr="title:settings.close">✕</button>
+      </div>
+
+      <div class="settings-body">
+        <section class="set-section">
+          <h3 data-i18n="settings.langs">Sprachen</h3>
+          <div class="set-card">
+            <label class="set-row">
+              <span class="set-label" data-i18n="settings.native">Ich spreche</span>
+              <select id="native-select"></select>
+            </label>
+            <label class="set-row">
+              <span class="set-label" data-i18n="settings.target">Ich lerne</span>
+              <select id="target-select"></select>
+            </label>
+            <label class="set-row set-toggle">
+              <span class="set-label">
+                <span data-i18n="settings.immersion">Oberfläche in der Lernsprache</span>
+                <small data-i18n="settings.immersionHint">so lernst du auch über die Bedienung</small>
+              </span>
+              <input type="checkbox" id="ui-in-target" class="switch" />
+            </label>
+          </div>
+        </section>
+
+        <section class="set-section">
+          <h3 data-i18n="settings.voiceHead">Stimme</h3>
+          <div class="set-card">
+            <!-- Ohne eigene Beschriftung: die Abschnittsueberschrift sagt
+                 bereits "Stimme", Auswahl und Probe duerfen dafuer die volle
+                 Breite nutzen. -->
+            <div class="set-row set-row-wide">
+              <select id="voice-select"></select>
+              <button id="btn-voice-preview" class="btn btn-ghost btn-sm" type="button" data-i18n="settings.preview">▶ Anhören</button>
+            </div>
+            <label class="set-row">
+              <span class="set-label" data-i18n="settings.speed">Sprechtempo</span>
+              <span class="set-control">
+                <input type="range" id="speed-range" min="0.7" max="1.2" step="0.05" />
+                <span id="speed-value" class="set-value"></span>
+              </span>
+            </label>
+          </div>
+        </section>
+
+        <section class="set-section">
+          <h3 data-i18n="settings.convo">Gespräch</h3>
+          <div class="set-card">
+            <label class="set-row">
+              <span class="set-label" data-i18n="setup.tutorName">Name deines Gesprächspartners</span>
+              <input id="tutor-name-input" class="name-input" type="text" maxlength="24" autocomplete="off" />
+            </label>
+            <label class="set-row set-toggle">
+              <span class="set-label">
+                <span data-i18n="settings.handsfree">Freihand-Modus</span>
+                <small data-i18n="settings.handsfreeHint">hört nach jeder Antwort automatisch zu</small>
+              </span>
+              <input type="checkbox" id="auto-listen" class="switch" />
+            </label>
+          </div>
+        </section>
+
+        <section class="set-section">
+          <h3 data-i18n="settings.models">Modelle &amp; Speicher</h3>
+          <div id="model-list" class="model-list"></div>
+          <div class="set-card">
+            <label class="set-row">
+              <span class="set-label" data-i18n="settings.stt">Spracherkennung</span>
+              <select id="stt-select"></select>
+            </label>
+          </div>
+          <p id="storage-info" class="storage-info"></p>
+          <button id="btn-wipe" class="btn btn-danger btn-sm settings-wipe" type="button" data-i18n="settings.wipe">Alle Daten &amp; Modelle löschen</button>
+        </section>
+
+        <div class="settings-legal">
+          <a href="/#/impressum" data-i18n="footer.imprint">Impressum</a>
+          <span aria-hidden="true">·</span>
+          <a href="/#/datenschutz" data-i18n="footer.privacy">Datenschutz</a>
+          <span aria-hidden="true">·</span>
+          <a href="/#/nutzung" data-i18n="footer.terms">Nutzungsbedingungen</a>
+          <span aria-hidden="true">·</span>
+          <a href="/#/lizenzen" data-i18n="footer.licenses">Lizenzen</a>
+          <span aria-hidden="true">·</span>
+          <a href="https://github.com/b3002025/browserofflineai" target="_blank" rel="noopener" data-i18n="footer.source">Quelltext</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Unterstuetzungs-Erinnerung: poppt gelegentlich auf (nie beim ersten
+       Besuch), jederzeit wegklickbar; wer schon unterstuetzt, sieht sie nie
+       wieder. Klassisches Foundation-Muster (Wikipedia & Co.). -->
+  <div id="donate-modal" class="overlay" hidden>
+    <div class="panel donate-modal-panel">
+      <div class="panel-head">
+        <h2 data-i18n="donatePrompt.title">Gefällt dir LocalSpeech?</h2>
+        <button id="btn-close-donate" class="icon-btn" title="Schließen" data-i18n-attr="title:settings.close">✕</button>
+      </div>
+      <div class="donate-modal-heart" aria-hidden="true">♥</div>
+      <p class="donate-modal-pitch" data-i18n="donatePrompt.pitch">Die App bleibt für dich immer kostenlos — ohne Abo, ohne Konto. Wenn sie dir beim Sprechenlernen hilft, unterstütze uns mit einem kleinen Beitrag, sie am Leben zu halten.</p>
+      <a id="donate-modal-buy" class="btn btn-primary btn-lg" href="#unterstuetzen" data-i18n="donatePrompt.cta">♥ Projekt unterstützen</a>
+      <button id="btn-donate-later" class="btn btn-ghost" type="button" data-i18n="donatePrompt.later">Vielleicht später</button>
+      <button id="btn-donate-already" class="link-btn" type="button" data-i18n="donatePrompt.already">Ich unterstütze schon ♥</button>
+    </div>
+  </div>
+
+  <!-- Einmaliger Tipp fuer neue Nutzer: eigene Nachricht antippen = korrigieren -->
+  <div id="hint-modal" class="overlay" hidden>
+    <div class="panel hint-modal-panel">
+      <div class="panel-head">
+        <h2 data-i18n="editHint.title">Schon gewusst?</h2>
+        <button id="btn-close-hint" class="icon-btn" title="Schließen" data-i18n-attr="title:settings.close">✕</button>
+      </div>
+      <!-- Mini-Nachbau der Geste: eigene Blase, Tipp-Welle, Antwort verschwindet -->
+      <div class="hint-demo" aria-hidden="true">
+        <div class="hint-demo-bubble">
+          <span class="hint-demo-line"></span>
+          <span class="hint-demo-line short"></span>
+          <span class="hint-demo-tap"></span>
+        </div>
+        <div class="hint-demo-reply">
+          <span class="hint-demo-line"></span>
+          <span class="hint-demo-line short"></span>
+        </div>
+      </div>
+      <p class="hint-modal-text" data-i18n-html="editHint.body">
+        Falsch verstanden? <strong>Tippe einfach auf deine letzte Nachricht.</strong>
+        Die Antwort darauf verschwindet und das Mikro geht wieder an — sag den Satz
+        noch einmal (oder tippe ihn) und schick ihn mit „Neu senden“ ab.
+      </p>
+      <button id="btn-hint-ok" class="btn btn-primary btn-lg" type="button" data-i18n="editHint.cta">Alles klar</button>
+    </div>
+  </div>
+
+  <div id="toasts" class="toasts" aria-live="assertive"></div>
+</div>
+
+<script type="module" src="/src/app-page.ts"></script>
+</body>
+</html>

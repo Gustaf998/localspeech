@@ -1,0 +1,35 @@
+# Netlify/Cloudflare-Pages-Header.
+#
+# Cross-Origin-Isolation (COOP/COEP) aktiviert SharedArrayBuffer => mehrere
+# WASM-Threads fuer Whisper, Kokoro und wllama (deutlich schneller auf CPU).
+# "credentialless" erlaubt weiterhin die Modell-Downloads vom Hugging-Face-CDN.
+#
+# WICHTIG — die Isolation gilt AUSSCHLIESSLICH fuer die App-Seite, nicht fuer
+# die Startseite. Unter COEP muessen eingebettete Cross-Origin-iFrames selbst
+# COEP setzen; js.stripe.com tut das nicht. Auf einer isolierten Seite lehnt
+# Chrome daher jeden iFrame des Stripe Payment Elements mit
+# ERR_BLOCKED_BY_RESPONSE ab und die Unterstuetzungs-Sektion bleibt leer.
+# Da Header pro Dokument gelten, liegen App (app.html) und Startseite
+# (index.html, mit der Zahlung) in getrennten Dokumenten.
+# Gegenstueck fuer die lokale Entwicklung: isolationForAppPage() in vite.config.ts.
+
+/app.html
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Embedder-Policy: credentialless
+
+# Cloudflare Pages liefert app.html auch unter /app aus (Endung optional).
+/app
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Embedder-Policy: credentialless
+
+# Assets brauchen die Header ZWINGEND mit — hier liegen die Worker
+# (stt.worker, tts.worker, phoneme.worker, translate.worker) und die
+# WASM-Binaries. Ein Worker, der aus einem isolierten Dokument startet, muss
+# selbst mit COEP ausgeliefert werden, auch als same-origin-Ressource; sonst
+# scheitert er an ERR_BLOCKED_BY_RESPONSE und es laedt kein Modell mehr.
+# Auf Skripten/CSS ist der Header wirkungslos, stoert die nicht isolierte
+# Startseite also nicht, obwohl sie sich Assets mit der App teilt.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Embedder-Policy: credentialless

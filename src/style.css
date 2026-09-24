@@ -1,0 +1,3289 @@
+/* ==========================================================================
+   LocalSpeech — Design System v2 „Monochrome“
+   Modernes Schwarz-Weiß mit Glas-Effekten; Rot als einziger Akzent
+   (Aufnahme/Fehler), Grün nur als Bereit-Punkt.
+   ========================================================================== */
+
+:root {
+  /* LocalSpeech ist immer dunkel gestaltet — sagt das dem Browser explizit,
+     damit native Steuerelemente (Select-Popups, Scrollbars, Checkboxen) auf
+     Windows/Chrome nicht auf das helle System-Theme zurueckfallen. Ohne das
+     rendert Chrome auf Windows das Dropdown-Menue eckig und kontrastarm,
+     obwohl auf macOS (dort meist per OS-Dark-Mode automatisch dunkel) alles
+     stimmig aussieht. */
+  color-scheme: dark;
+  --bg: #050506;
+  --bg-2: #0b0b0d;
+  --surface: #121214;
+  --surface-2: #1a1a1d;
+  --border: rgba(255, 255, 255, 0.09);
+  --border-strong: rgba(255, 255, 255, 0.2);
+  --text: #f4f4f5;
+  --muted: #9d9da3;
+  --accent: #ffffff;
+  --accent-2: #c7c7cc;
+  --accent-ink: #0a0a0a;
+  --danger: #ff6b6b;
+  --hl: #4ade80; /* Green-Highlight (Header-Pillen) */
+  --grad: linear-gradient(135deg, #ffffff 0%, #c9c9ce 100%);
+  --radius: 16px;
+  --radius-sm: 10px;
+  --shadow: 0 10px 40px rgba(0, 0, 0, 0.55);
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* Wichtig: das hidden-Attribut muss auch Elemente mit eigener display-Regel
+   (z. B. .overlay { display:flex }) zuverlaessig ausblenden. */
+[hidden] { display: none !important; }
+
+html {
+  scroll-behavior: smooth;
+  /* iOS Safari blaeht sonst Fliesstext im Querformat auf */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  /* Kein grauer Tap-Blitz auf iOS/Android beim Antippen von Links/Buttons */
+  -webkit-tap-highlight-color: transparent;
+}
+
+::selection { background: rgba(255, 255, 255, 0.25); }
+
+/* ---------------------------------------------------------------- Scrollbars */
+/* Ersetzt die native Scrollbar (auf Windows/Chrome faellt sie sonst dick,
+   eckig und hellgrau ins Bild — passt nicht zum Glas-Look der restlichen UI)
+   durch einen duennen, schwebenden Balken in Monochrom. Gilt global, trifft
+   also sowohl den Chat-Verlauf als auch die Einstellungen-Panels. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.22) transparent;
+}
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-button { display: none; width: 0; height: 0; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.32);
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-corner { background: transparent; }
+
+h1, h2, h3 { line-height: 1.15; letter-spacing: -0.02em; }
+
+a { color: inherit; text-decoration: none; }
+
+button, input, select {
+  font: inherit;
+  color: inherit;
+}
+
+/* ------------------------------------------------------------------ Knöpfe */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 0.7rem 1.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+  white-space: nowrap;
+}
+.btn:active { transform: scale(0.97); }
+
+.btn-primary {
+  background: var(--grad);
+  color: var(--accent-ink);
+  box-shadow: 0 4px 24px rgba(255, 255, 255, 0.18);
+}
+.btn-primary:hover { box-shadow: 0 6px 32px rgba(255, 255, 255, 0.3); transform: translateY(-1px); }
+
+.btn-ghost {
+  background: transparent;
+  border-color: var(--border-strong);
+  color: var(--text);
+}
+.btn-ghost:hover { background: rgba(255, 255, 255, 0.07); }
+
+.btn-danger {
+  background: transparent;
+  border-color: rgba(255, 107, 107, 0.4);
+  color: var(--danger);
+}
+.btn-danger:hover { background: rgba(255, 107, 107, 0.1); }
+
+.btn-sm { padding: 0.45rem 1rem; font-size: 0.9rem; }
+.btn-lg { padding: 0.9rem 2rem; font-size: 1.05rem; }
+.btn-block { width: 100%; }
+.btn[disabled] { opacity: 0.5; pointer-events: none; }
+
+.icon-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  width: 38px;
+  height: 38px;
+  cursor: pointer;
+  font-size: 1.05rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+.icon-btn:hover { background: rgba(255, 255, 255, 0.12); }
+
+/* -------------------------------------------------------------------- Logo */
+
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-weight: 800;
+  font-size: 1.25rem;
+  letter-spacing: -0.02em;
+}
+.logo em { font-style: normal; background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.logo-mark {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: var(--grad);
+  position: relative;
+  flex: none;
+  box-shadow: 0 2px 14px rgba(255, 255, 255, 0.25);
+}
+.logo-mark::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(var(--accent-ink), var(--accent-ink)) 7px 50% / 2.5px 8px,
+    linear-gradient(var(--accent-ink), var(--accent-ink)) 13px 50% / 2.5px 16px,
+    linear-gradient(var(--accent-ink), var(--accent-ink)) 19px 50% / 2.5px 10px;
+  background-repeat: no-repeat;
+  border-radius: inherit;
+}
+.logo-sm { font-size: 1.05rem; }
+.logo-sm .logo-mark { width: 24px; height: 24px; }
+.logo-sm .logo-mark::after {
+  background:
+    linear-gradient(var(--accent-ink), var(--accent-ink)) 5px 50% / 2px 7px,
+    linear-gradient(var(--accent-ink), var(--accent-ink)) 10.5px 50% / 2px 13px,
+    linear-gradient(var(--accent-ink), var(--accent-ink)) 16px 50% / 2px 8px;
+  background-repeat: no-repeat;
+}
+
+/* ===================================================================
+   LANDING
+   =================================================================== */
+
+#landing {
+  position: relative;
+  isolation: isolate;
+  overflow-x: clip;
+  /* Bühnenraum: fast schwarz, oben ein Hauch Anthrazit — als stünde man im Saal */
+  background: linear-gradient(to bottom, #101013 0%, #08080a 42vh, var(--bg) 100vh);
+}
+
+/* Vignette: die Ränder fallen ins Dunkel — erzeugt Tiefe wie im Kinosaal */
+#landing::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 130vh;
+  z-index: -1;
+  background: radial-gradient(120% 100% at 50% 8%, transparent 42%, rgba(0, 0, 0, 0.62) 100%);
+  pointer-events: none;
+}
+
+/* --------------------------------------------------- Bühnenlicht (Hero) */
+
+.stage-lights {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100svh;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  /* Weicher Auslauf statt harter Kante am Container-Ende */
+  -webkit-mask-image: linear-gradient(to bottom, #000 72%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 72%, transparent 100%);
+}
+
+/* Ein Scheinwerferkegel: weicher Lichtfächer aus einem conic-gradient
+   (keine harten Kanten), der nach unten über eine Maske ausläuft.
+   Per screen-Blending addieren sich überlappende Kegel zu hellerem Licht. */
+.beam {
+  position: absolute;
+  top: -4vh;
+  height: 100vh;
+  width: clamp(340px, 46vw, 680px);
+  transform-origin: 50% 0;
+  background:
+    /* heller Kern an der Lichtquelle */
+    radial-gradient(150px 100px at 50% 0%, rgba(255, 255, 255, 0.65), transparent 70%),
+    /* der eigentliche Kegel: Spitze oben, öffnet sich nach unten */
+    conic-gradient(
+      at 50% -2%,
+      transparent 0 44%,
+      rgba(255, 255, 255, 0.08) 47%,
+      rgba(255, 255, 255, 0.3) 50%,
+      rgba(255, 255, 255, 0.08) 53%,
+      transparent 56% 100%
+    );
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, rgba(0, 0, 0, 0.75) 45%, transparent 88%);
+  mask-image: linear-gradient(to bottom, #000 0%, rgba(0, 0, 0, 0.75) 45%, transparent 88%);
+  filter: blur(12px);
+  mix-blend-mode: screen;
+  will-change: transform, opacity;
+  animation: beam-on 1.6s ease-out both;
+}
+/* Seitliche Kegel neigen sich zur Mitte, wo die Headline steht */
+.beam-l {
+  left: 4vw;
+  animation:
+    beam-on 1.4s ease-out 0.15s both,
+    beam-sway-l 12s ease-in-out 1.6s infinite alternate;
+}
+.beam-c {
+  left: 50%;
+  margin-left: clamp(-340px, -23vw, -170px);
+  opacity: 0.92;
+  animation:
+    beam-on 1.8s ease-out 0.55s both,
+    beam-sway-c 15s ease-in-out 2.4s infinite alternate;
+}
+.beam-r {
+  right: 4vw;
+  animation:
+    beam-on 1.4s ease-out 0.3s both,
+    beam-sway-r 13s ease-in-out 1.9s infinite alternate;
+}
+@keyframes beam-on {
+  from { opacity: 0; }
+}
+/* Sehr langsames Pendeln — lebendig, aber nie unruhig */
+@keyframes beam-sway-l {
+  from { transform: rotate(-15deg); }
+  to { transform: rotate(-10.5deg); }
+}
+@keyframes beam-sway-c {
+  from { transform: rotate(-1.6deg); }
+  to { transform: rotate(1.6deg); }
+}
+@keyframes beam-sway-r {
+  from { transform: rotate(15deg); }
+  to { transform: rotate(10.5deg); }
+}
+/* Startwinkel = Startwert des Pendelns, damit die Animation nahtlos übernimmt */
+.beam-l { transform: rotate(-15deg); }
+.beam-c { transform: rotate(-1.6deg); }
+.beam-r { transform: rotate(15deg); }
+
+/* Lichtinsel, wo die Kegel auf die Headline treffen */
+.stage-glow {
+  position: absolute;
+  left: 50%;
+  top: 26vh;
+  width: min(920px, 96vw);
+  height: 460px;
+  transform: translateX(-50%);
+  background: radial-gradient(closest-side, rgba(255, 255, 255, 0.09), transparent 72%);
+  filter: blur(12px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .beam-l, .beam-c, .beam-r { animation: none; }
+  .beam-c { transform: none; }
+}
+
+/* Nav als schwebende Insel: losgeloest vom Seitenrand, glasig, abgerundet.
+   Der Wrap selbst bleibt transparent — nur die Insel traegt Hintergrund. */
+.nav-wrap {
+  position: sticky;
+  /* Als installierte PWA rutscht die Insel unter die Notch/Statusleiste */
+  top: max(0.9rem, env(safe-area-inset-top));
+  z-index: 20;
+  /* Randabstand haelt im Querformat Abstand zur Notch (Landscape-Inset) */
+  padding: 0 max(1rem, env(safe-area-inset-right)) 0 max(1rem, env(safe-area-inset-left));
+  pointer-events: none; /* nur die Insel selbst faengt Klicks */
+}
+.nav {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 0.6rem 0.7rem 0.6rem 1.2rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(10, 10, 12, 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+  transition: border-color 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
+}
+.nav-wrap.scrolled .nav {
+  border-color: var(--border-strong);
+  background: rgba(8, 8, 10, 0.82);
+  box-shadow: 0 14px 44px rgba(0, 0, 0, 0.55);
+}
+.nav-links { display: flex; gap: 1.6rem; font-size: 0.95rem; color: var(--muted); }
+.nav-links a:hover { color: var(--text); }
+.nav-right { display: flex; align-items: center; gap: 0.6rem; }
+
+/* Kompakter Sprachumschalter in der Nav-Insel.
+   Desktop: das native Select traegt selbst die Pille, die Flagge ist versteckt.
+   Mobil (siehe Media-Query): die Pille schrumpft auf reine Flagge + Pfeil, das
+   Select liegt unsichtbar darueber — so bleiben Wortmarke UND CTA in der Zeile. */
+.lang-switch { position: relative; display: inline-flex; align-items: center; }
+.lang-flag { display: none; }
+.lang-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.4rem 0.9rem;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.lang-select:hover { background: rgba(255, 255, 255, 0.12); border-color: var(--border-strong); }
+
+.hero {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 4.5rem 1.5rem 3rem;
+  text-align: center;
+}
+
+/* Der Landing-Hero ist eine Bühne: ein voller Viewport dunkler Raum,
+   die Headline steht im Licht der Scheinwerfer. */
+.hero-stage {
+  position: relative;
+  z-index: 1;
+  min-height: calc(100svh - 6.5rem); /* Nav-Insel ist sticky und nimmt oben Platz ein */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-top: 2rem;
+  padding-bottom: 5rem;
+}
+.hero-stage h1 {
+  font-size: clamp(2.5rem, 6.6vw, 4.6rem);
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+  /* drop-shadow statt text-shadow: wirkt auch auf den Gradient-Text */
+  filter: drop-shadow(0 0 46px rgba(255, 255, 255, 0.16));
+}
+.hero-stage .hero-badge {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-color: var(--border);
+  font-size: 0.84rem;
+  letter-spacing: 0.02em;
+}
+.hero-stage .hero-sub { font-size: 1.15rem; }
+
+/* Scroll-Hinweis: kleine „Maus“ am unteren Bühnenrand */
+.scroll-cue {
+  position: absolute;
+  bottom: 1.8rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 25px;
+  height: 40px;
+  border: 1.5px solid rgba(255, 255, 255, 0.26);
+  border-radius: 999px;
+  opacity: 0;
+  animation: cue-in 1.2s ease 2.4s forwards;
+}
+.scroll-cue span {
+  position: absolute;
+  top: 7px;
+  left: 50%;
+  width: 3px;
+  height: 8px;
+  margin-left: -1.5px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.65);
+  animation: cue-drop 2.4s ease-in-out 2.4s infinite;
+}
+@keyframes cue-in { to { opacity: 1; } }
+@keyframes cue-drop {
+  0% { transform: translateY(0); opacity: 1; }
+  45% { transform: translateY(14px); opacity: 0; }
+  55% { transform: translateY(0); opacity: 0; }
+  75%, 100% { transform: translateY(0); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .scroll-cue { animation: none; opacity: 1; }
+  .scroll-cue span { animation: none; }
+}
+
+/* Sektion direkt unter der Bühne: Statistiken + Gesprächs-Demo */
+.hero-extra { padding-top: 0; padding-bottom: 3.5rem; }
+.hero-extra .hero-stats { margin-top: 0; }
+.hero-extra .hero-demo { margin-top: 3rem; }
+.hero-badge {
+  display: inline-block;
+  border: 1px solid var(--border-strong);
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 999px;
+  padding: 0.4rem 1.1rem;
+  font-size: 0.88rem;
+  color: var(--muted);
+  margin-bottom: 1.6rem;
+}
+.hero h1 { font-size: clamp(2.3rem, 6vw, 4rem); font-weight: 800; }
+.hero .grad { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.hero-sub {
+  max-width: 640px;
+  margin: 1.4rem auto 2rem;
+  font-size: 1.12rem;
+  color: var(--muted);
+}
+.hero-sub strong { color: var(--text); }
+.hero-actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+.hero-note { margin-top: 1rem; font-size: 0.85rem; color: var(--muted); opacity: 0.8; }
+
+.hero-demo {
+  max-width: 560px;
+  margin: 3.5rem auto 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  text-align: left;
+}
+.demo-bubble {
+  padding: 0.8rem 1.1rem;
+  border-radius: 18px;
+  font-size: 0.98rem;
+  max-width: 85%;
+  border: 1px solid var(--border);
+  animation: bubble-in 0.6s ease both;
+}
+.demo-bubble:nth-child(2) { animation-delay: 0.5s; }
+.demo-bubble:nth-child(3) { animation-delay: 1s; }
+.demo-ai { background: var(--surface); align-self: flex-start; }
+.demo-user { background: rgba(255, 255, 255, 0.1); align-self: flex-end; }
+@keyframes bubble-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+
+.section {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 4.5rem 1.5rem;
+}
+.section h2 { font-size: clamp(1.7rem, 4vw, 2.4rem); text-align: center; margin-bottom: 0.8rem; }
+.section-sub {
+  text-align: center;
+  color: var(--muted);
+  max-width: 620px;
+  margin: 0 auto 2.8rem;
+  font-size: 1.05rem;
+}
+
+.grid { display: grid; gap: 1.2rem; }
+.features-grid { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.steps-grid { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); margin-top: 2.5rem; }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.7rem;
+  transition: border-color 0.2s, transform 0.2s;
+}
+.card:hover { border-color: var(--border-strong); transform: translateY(-2px); }
+
+/* Cursor-Spot: ein weicher Lichtfleck folgt dem Zeiger über die Karte.
+   Die Position (--spot-x/--spot-y) setzt main.ts per pointermove. */
+.card, .tier-card, .faq details { position: relative; }
+.card::after, .tier-card::after, .faq details::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(190px circle at var(--spot-x, 50%) var(--spot-y, 50%), rgba(255, 255, 255, 0.09), transparent 65%);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+}
+.card:hover::after, .tier-card:hover::after, .faq details:hover::after { opacity: 1; }
+
+/* Scroll-Reveal: Elemente gleiten beim Hereinscrollen sanft ins Bild.
+   Die Klassen setzt main.ts; nach der Animation werden sie wieder entfernt. */
+.reveal { opacity: 0; }
+.reveal.in {
+  animation: reveal-up 0.65s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+  animation-delay: var(--reveal-delay, 0s);
+}
+@keyframes reveal-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: none; }
+}
+.card h3 { font-size: 1.12rem; margin-bottom: 0.5rem; }
+.card p { color: var(--muted); font-size: 0.95rem; }
+.card p strong { color: var(--text); }
+.card-icon { font-size: 1.8rem; margin-bottom: 0.9rem; filter: grayscale(1) brightness(1.5); }
+
+.step { text-align: center; }
+.step-num {
+  width: 44px;
+  height: 44px;
+  margin: 0 auto 1rem;
+  border-radius: 50%;
+  background: var(--grad);
+  color: var(--accent-ink);
+  font-weight: 800;
+  font-size: 1.15rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.privacy-section {
+  background: var(--bg-2);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  max-width: none;
+}
+.privacy-points {
+  max-width: 900px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+}
+.pp { display: flex; gap: 0.9rem; align-items: flex-start; }
+.pp span { font-size: 1.6rem; filter: grayscale(1) brightness(1.5); }
+.pp div { color: var(--muted); font-size: 0.92rem; }
+.pp strong { color: var(--text); }
+
+.faq { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 0.8rem; }
+.faq details {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 1rem 1.3rem;
+}
+.faq summary { cursor: pointer; font-weight: 600; list-style: none; position: relative; padding-right: 2rem; }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: '+'; position: absolute; right: 0; color: var(--accent-2); font-size: 1.3rem; line-height: 1; }
+.faq details[open] summary::after { content: '–'; }
+.faq details p { color: var(--muted); padding-top: 0.7rem; font-size: 0.95rem; }
+
+.cta-section { text-align: center; }
+.cta-section h2 { margin-bottom: 1.8rem; }
+
+.footer {
+  border-top: 1px solid var(--border);
+  padding: 2.5rem 1.5rem;
+  /* Home-Indicator (iOS) / Gestenleiste (Android) nicht ueberdecken */
+  padding-bottom: max(2.5rem, calc(1.5rem + env(safe-area-inset-bottom)));
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+.footer-links { margin-top: 0.6rem; display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap; }
+.footer-links a:hover { color: var(--text); }
+.imprint { margin-top: 1.4rem; font-size: 0.78rem; opacity: 0.6; }
+
+/* ------------------------------------------------- Hero-Statistikzeile */
+
+.hero-stats {
+  max-width: 860px;
+  margin: 2.6rem auto 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr));
+  gap: 0.9rem;
+}
+.hero-stats .stat {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.1rem 1rem 1rem;
+  text-align: center;
+}
+.stat-value {
+  font-size: clamp(1.7rem, 3.4vw, 2.3rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  white-space: nowrap;
+  background: var(--grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.stat-label { margin-top: 0.35rem; font-size: 0.85rem; color: var(--muted); line-height: 1.45; }
+
+/* ------------------------------------------------- Wirkungs-/Statistik-Sektion */
+
+.science-section { max-width: 1000px; }
+.chart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.2rem; }
+.chart-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem 1.5rem 1.3rem;
+}
+.chart-card h3 { font-size: 1.05rem; margin-bottom: 0.2rem; }
+.chart-card .chart-sub { color: var(--muted); font-size: 0.86rem; margin-bottom: 1.3rem; }
+.chart-card .chart-src { color: var(--muted); font-size: 0.78rem; opacity: 0.8; margin-top: 1.1rem; }
+.chart-card .chart-src a { text-decoration: underline; text-underline-offset: 2px; }
+.chart-card .chart-src a:hover { color: var(--text); }
+
+/* Horizontale Balken: duenn, 4px runde Datenkante, eckige Basislinie.
+   Waechst per width-Transition, sobald .in gesetzt wird (IntersectionObserver). */
+.hbar { margin-bottom: 1.05rem; }
+.hbar:last-of-type { margin-bottom: 0; }
+.hbar-head { display: flex; justify-content: space-between; align-items: baseline; gap: 0.8rem; margin-bottom: 0.4rem; }
+.hbar-name { font-size: 0.88rem; color: var(--text); }
+.hbar-value { font-size: 0.95rem; font-weight: 700; color: var(--text); white-space: nowrap; }
+.hbar-track { height: 18px; border-radius: 0 4px 4px 0; background: rgba(255, 255, 255, 0.05); overflow: hidden; }
+.hbar-fill {
+  height: 100%;
+  width: 0;
+  border-radius: 0 4px 4px 0;
+  background: #77777f;
+  transition: width 1.1s cubic-bezier(0.25, 0.7, 0.3, 1);
+}
+.hbar-hero .hbar-fill { background: var(--grad); }
+.hbar-hero .hbar-name { font-weight: 600; }
+.chart-in .hbar-fill { width: var(--w, 0%); }
+
+/* Grosse Einzelzahl mit Zaehl-Animation */
+.bignum-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 1.2rem; margin-top: 1.2rem; }
+.bignum {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.4rem 1.5rem;
+}
+.bignum-value {
+  /* nowrap: der Wert darf nie zwischen ein- und zweizeilig umbrechen — sonst
+     springt die Box waehrend der Zaehl-Animation in der Hoehe (z. B. „4,5 Jahre"). */
+  white-space: nowrap;
+  font-size: clamp(1.7rem, 3.6vw, 2.15rem);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  background: var(--grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.bignum-label { color: var(--muted); font-size: 0.9rem; margin-top: 0.4rem; line-height: 1.5; }
+.bignum-label strong { color: var(--text); }
+
+/* Quellenverzeichnis — standardmaessig eingeklappt, dezent im Hintergrund. */
+.sources {
+  margin-top: 2.6rem;
+  border-top: 1px solid var(--border);
+  padding-top: 1.4rem;
+}
+.sources > summary {
+  cursor: pointer;
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--muted);
+  opacity: 0.7;
+  transition: opacity 0.2s ease, color 0.2s ease;
+}
+.sources > summary:hover { opacity: 1; color: var(--text); }
+.sources > summary::-webkit-details-marker { display: none; }
+.sources > summary::before {
+  content: '›';
+  font-size: 1.15em;
+  line-height: 1;
+  transition: transform 0.2s ease;
+}
+.sources[open] > summary { opacity: 1; margin-bottom: 0.9rem; }
+.sources[open] > summary::before { transform: rotate(90deg); }
+.sources ol { list-style: decimal inside; color: var(--muted); font-size: 0.8rem; line-height: 1.7; }
+.sources li { margin-bottom: 0.25rem; }
+.sources a { text-decoration: underline; text-underline-offset: 2px; overflow-wrap: anywhere; }
+.sources a:hover { color: var(--text); }
+
+/* ===================================================================
+   APP
+   =================================================================== */
+
+#app {
+  --imm: 0; /* Sprech-only-Modus: 0 = aus, 1 = Kugel im Zentrum (per JS gesetzt) */
+  position: relative; /* Bezugsrahmen fuer das bildschirmfuellende Punktraster */
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+  background: var(--bg);
+}
+
+/* Kopfzeile als frei stehende Glas-Karte (wie im Referenz-Design) */
+.app-header {
+  padding: 0.8rem 0.9rem 0;
+  z-index: 2;
+}
+.header-card {
+  max-width: 980px;
+  margin: 0 auto;
+  background: linear-gradient(150deg, rgba(44, 44, 49, 0.85) 0%, rgba(16, 16, 18, 0.9) 55%, rgba(8, 8, 9, 0.95) 100%);
+  border: 1px solid var(--border);
+  border-radius: 26px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  padding: 1rem 1.15rem 0.9rem;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.7rem 0.9rem;
+}
+/* Logo-Kachel wie auf der Startseite (SVG-Version des .logo-mark) */
+.hc-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 31%;
+  display: inline-flex;
+  flex: none;
+  box-shadow: 0 2px 14px rgba(255, 255, 255, 0.22);
+}
+.hc-icon svg { width: 100%; height: 100%; display: block; }
+.hc-title { font-size: 1.45rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1.2; }
+.hc-title em { font-style: normal; background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.hc-sub {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--muted);
+  font-size: 0.92rem;
+  flex-wrap: wrap;
+}
+.hc-sep { opacity: 0.45; }
+.hc-sub select {
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--muted);
+  font-size: 0.92rem;
+  padding: 0 0.1rem;
+  max-width: 190px;
+  cursor: pointer;
+}
+.hc-sub select:hover { color: var(--text); }
+.hc-sub select:focus { outline: 1px solid rgba(255, 255, 255, 0.35); }
+.hc-actions { display: flex; gap: 0.55rem; align-items: center; }
+/* Alle Header-Knoepfe sind ovale Pillen; Schwarz-Weiss mit --hl nur als
+   Highlight (Hover-Glow). */
+.hc-btn {
+  width: 54px;
+  height: 40px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, border-color 0.15s;
+}
+.hc-btn svg { width: 21px; height: 21px; }
+.hc-btn:hover { background: rgba(255, 255, 255, 0.1); }
+/* Feature-Pille (Legenden): gefuelltes Glas in Monochrom */
+.hc-btn.hc-feat {
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.13) 0%, rgba(255, 255, 255, 0.03) 100%);
+  border-color: rgba(255, 255, 255, 0.16);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 4px 14px rgba(0, 0, 0, 0.4);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background 0.18s;
+}
+.hc-btn.hc-feat:hover {
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.19) 0%, rgba(255, 255, 255, 0.05) 100%);
+  border-color: color-mix(in srgb, var(--hl) 55%, rgba(255, 255, 255, 0.2));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 8px 22px rgba(0, 0, 0, 0.5),
+    0 0 16px color-mix(in srgb, var(--hl) 30%, transparent);
+  transform: translateY(-2px);
+}
+.hc-btn.hc-feat:active { transform: translateY(0) scale(0.96); }
+/* Settings: gleiche Pillen-Familie, leicht heller abgesetzt */
+.hc-btn-solid {
+  background: linear-gradient(165deg, rgba(58, 60, 66, 0.9) 0%, rgba(20, 20, 24, 0.94) 100%);
+  border-color: rgba(255, 255, 255, 0.16);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 4px 14px rgba(0, 0, 0, 0.4);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background 0.18s;
+}
+.hc-btn-solid:hover {
+  background: linear-gradient(165deg, rgba(74, 77, 84, 0.95) 0%, rgba(26, 26, 30, 0.95) 100%);
+  border-color: color-mix(in srgb, var(--hl) 55%, rgba(255, 255, 255, 0.2));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.24),
+    0 8px 22px rgba(0, 0, 0, 0.5),
+    0 0 16px color-mix(in srgb, var(--hl) 30%, transparent);
+  transform: translateY(-2px);
+}
+.hc-btn-solid:active { transform: translateY(0) scale(0.96); }
+.hc-btn-solid svg { transition: transform 0.25s ease; }
+.hc-btn-solid:hover svg { transform: rotate(90deg); }
+
+/* Duenner Trenner zwischen Feature-Kacheln und Utility-Knoepfen */
+.hc-div {
+  width: 1px;
+  height: 24px;
+  flex: none;
+  background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.18), transparent);
+}
+.header-card .status-chip { grid-column: 1 / -1; justify-self: start; }
+
+select {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.45rem 0.7rem;
+  cursor: pointer;
+  max-width: 240px;
+  color-scheme: dark;
+  /* Windows' "Kontrast/Design anpassen"-Systemfarben (forced-colors) duercken
+     sich sonst trotz color-scheme:dark ueber die Aufklapp-Liste und faerben
+     sie hell/eckig ein — das ist genau der Windows-vs-iOS-Unterschied aus dem
+     Screenshot. forced-color-adjust:none nimmt Select + Optionen davon aus,
+     unsere eigene dunkle Farbgebung greift dann auch dort. */
+  forced-color-adjust: none;
+}
+select:focus { outline: 2px solid rgba(255, 255, 255, 0.35); }
+/* Aufklapp-Liste (Windows/Chrome faellt sonst auf helle System-Farben mit
+   eckigen Ecken zurueck, s. color-scheme in :root) — auf allen Selects im
+   Header, in den Einstellungen und im Setup einheitlich dunkel. */
+select option {
+  background: var(--surface);
+  color: var(--text);
+  color-scheme: dark;
+  forced-color-adjust: none;
+}
+
+.name-input {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.55rem 0.8rem;
+  color: inherit;
+  font-size: 1rem;
+}
+.name-input:focus { outline: 2px solid rgba(255, 255, 255, 0.35); }
+
+.status-chip {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--muted);
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  padding: 0.35rem 1rem;
+  background: rgba(5, 5, 6, 0.75);
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.status-chip.ready { color: var(--text); }
+.status-chip.ready::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #4ade80; /* bewusster Mini-Akzent wie „Model ready“ */
+  box-shadow: 0 0 8px rgba(74, 222, 128, 0.7);
+  flex: none;
+}
+
+.app-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  background:
+    radial-gradient(900px 480px at 50% -10%, rgba(255, 255, 255, 0.045), transparent 60%),
+    radial-gradient(700px 500px at 85% 110%, rgba(255, 255, 255, 0.03), transparent 60%);
+}
+
+/* Interaktives Punktraster hinter dem Chat */
+#dots {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.chat {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem 1rem 130px; /* unterer Abstand wird per JS an die Dock-Höhe gekoppelt */
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 820px;
+  width: 100%;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.msg {
+  max-width: 82%;
+  padding: 1rem 1.25rem;
+  border-radius: 24px;
+  font-size: 1.02rem;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  animation: bubble-in 0.25s ease both;
+  background: linear-gradient(150deg, rgba(46, 46, 51, 0.7) 0%, rgba(20, 20, 22, 0.65) 60%, rgba(12, 12, 14, 0.7) 100%);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.35);
+}
+.msg-text { white-space: pre-wrap; }
+/* Datei-Chip ueber dem Text, wenn der Nachricht ein Dokument beiliegt. */
+.msg-doc {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  max-width: 100%;
+  margin-bottom: 0.55rem;
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  background: rgba(10, 10, 10, 0.06);
+  border: 1px solid rgba(10, 10, 10, 0.12);
+}
+.msg-doc svg { width: 15px; height: 15px; flex: none; opacity: 0.7; }
+.msg-doc-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.msg-assistant { align-self: flex-start; border-bottom-left-radius: 8px; }
+.msg-user {
+  background: #fff;
+  color: #0a0a0a;
+  border: none;
+  align-self: flex-end;
+  border-bottom-right-radius: 8px;
+  box-shadow: 0 6px 22px rgba(255, 255, 255, 0.12);
+}
+
+.msg-typing { color: var(--muted); }
+.msg-typing .dots i {
+  display: inline-block;
+  width: 6px; height: 6px;
+  margin-right: 4px;
+  border-radius: 50%;
+  background: var(--muted);
+  animation: dot 1.2s infinite;
+}
+.msg-typing .dots i:nth-child(2) { animation-delay: 0.2s; }
+.msg-typing .dots i:nth-child(3) { animation-delay: 0.4s; }
+@keyframes dot { 0%, 60%, 100% { opacity: 0.25; } 30% { opacity: 1; transform: translateY(-2px); } }
+
+/* Aktionsleiste unter Assistenten-Nachrichten (Vorlesen) */
+.msg-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.8rem;
+}
+.msg-action {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.msg-action svg { width: 19px; height: 19px; }
+.msg-action:hover { background: rgba(255, 255, 255, 0.14); }
+
+/* ------------------------------------------- Eigene Nachricht nachbessern */
+/* Kein Extra-Knopf: die letzte eigene Blase IST die Schaltflaeche. Sie zeigt
+   das nur ueber Zeiger und ein leichtes Anheben beim Hovern — die Blase soll
+   eine Blase bleiben, kein Formularelement. */
+.msg-editable {
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.msg-editable .msg-text { cursor: pointer; }
+/* :not(.msg-editing) ist Pflicht, nicht Kosmetik: direkt nach dem Klick steht
+   der Zeiger noch auf der Blase (auf Touch klebt der Zustand sogar), und
+   :hover wuerde mit seiner hoeheren Spezifitaet den Korrektur-Ring
+   ueberschreiben. */
+.msg-editable:not(.msg-editing):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 26px rgba(255, 255, 255, 0.16);
+}
+.msg-editable:focus-visible {
+  outline: 2px solid var(--hl);
+  outline-offset: 3px;
+}
+/* Auf Touch gibt es kein Hover — der klebrige Zustand nach dem Tippen wuerde
+   die Blase sonst dauerhaft angehoben lassen (gleiche Regel wie auf der Landing). */
+@media (hover: none) {
+  .msg-editable:not(.msg-editing):hover {
+    transform: none;
+    box-shadow: 0 6px 22px rgba(255, 255, 255, 0.12);
+  }
+}
+
+/* Editor sitzt IN der Blase: gleiche Schrift, gleiche Zeilen — der Satz
+   verrutscht beim Bearbeiten also nicht, er wird nur schreibbar. Der
+   Highlight-Ring zeigt, welcher Satz gerade auf die Korrektur wartet — er
+   gehoert zum Mikro, das dafuer sichtbar mitlaeuft. */
+.msg-editing {
+  min-width: min(340px, 78vw);
+  cursor: default;
+  transform: none;
+  /* Ring zuerst: sonst waescht der weiche weisse Schein der Blase ihn aus. */
+  box-shadow: 0 0 0 2px var(--hl),
+    0 0 22px color-mix(in srgb, var(--hl) 35%, transparent);
+}
+.msg-edit { display: flex; flex-direction: column; gap: 0.7rem; }
+.msg-edit-input {
+  width: 100%;
+  resize: none;
+  overflow: hidden;
+  border: none;
+  border-bottom: 1px solid rgba(10, 10, 10, 0.18);
+  border-radius: 0;
+  background: transparent;
+  color: #0a0a0a;
+  padding: 0 0 0.35rem;
+  /* textarea erbt die Schrift nicht von selbst — ohne das steht der Satz beim
+     Bearbeiten ploetzlich in Monospace. */
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  white-space: pre-wrap;
+  transition: border-color 0.15s ease;
+}
+.msg-edit-input:focus {
+  outline: none;
+  border-bottom-color: #0a0a0a;
+}
+.msg-edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+/* Ovale Pillen wie im Rest der App, nur invertiert fuer den weissen Grund. */
+.msg-edit-pill {
+  border-radius: 999px;
+  padding: 0.4rem 1rem;
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid rgba(10, 10, 10, 0.2);
+  background: transparent;
+  color: rgba(10, 10, 10, 0.7);
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+.msg-edit-pill:hover { background: rgba(10, 10, 10, 0.06); color: #0a0a0a; }
+.msg-edit-pill.solid {
+  background: #0a0a0a;
+  border-color: #0a0a0a;
+  color: #fff;
+}
+.msg-edit-pill.solid:hover { background: #1c1c1f; }
+/* Frisch diktierter Satz steht im Feld — der Knopf meldet sich kurz zu Wort. */
+.msg-edit-pill.solid.nudge { animation: pill-nudge 1.2s ease-out 2; }
+@keyframes pill-nudge {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--hl) 75%, transparent); }
+  70% { box-shadow: 0 0 0 9px color-mix(in srgb, var(--hl) 0%, transparent); }
+  100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--hl) 0%, transparent); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .msg-edit-pill.solid.nudge { animation: none; }
+}
+.msg-edit-pill:active { transform: scale(0.97); }
+.msg-edit-pill:focus-visible { outline: 2px solid rgba(10, 10, 10, 0.45); outline-offset: 2px; }
+
+/* ----------------------------------------------------------- Uebersetzung */
+/* Text in den Blasen laesst sich markieren (Doppelklick zum Uebersetzen). */
+.msg-text { cursor: text; }
+
+/* Aktiver Uebersetzen-Knopf, solange die Uebersetzung unter der Antwort steht. */
+.msg-action.msg-translate.active {
+  background: var(--hl);
+  color: #0a0a0a;
+  border-color: var(--hl);
+}
+
+/* Ganze Antwort uebersetzt: ruhiger Block unter dem Antworttext. */
+.msg-translation {
+  margin-top: 0.8rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--muted);
+  font-size: 0.96rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+.msg-translation .dots i,
+.translate-pop .dots i {
+  display: inline-block;
+  width: 6px; height: 6px; margin-right: 4px;
+  border-radius: 50%;
+  animation: dot 1.2s infinite;
+}
+.msg-translation .dots i { background: var(--muted); }
+.msg-translation .dots i:nth-child(2),
+.translate-pop .dots i:nth-child(2) { animation-delay: 0.2s; }
+.msg-translation .dots i:nth-child(3),
+.translate-pop .dots i:nth-child(3) { animation-delay: 0.4s; }
+
+/* --------------------------------------------------- Aussprache-Uebung */
+/* Nachsprechen-Knopf waehrend der Aufnahme: gleiches gruenes Mikro-Gluehen wie
+   die Kugel im "listening"-Zustand, damit die Geste sofort vertraut wirkt. */
+.msg-action.msg-shadow.recording {
+  background: var(--hl);
+  color: #0a0a0a;
+  border-color: var(--hl);
+  animation: listen-glow 1.8s ease-in-out infinite;
+}
+/* Modell laedt / Phoneme werden ausgewertet -> dezentes Warten-Pulsen. */
+.msg-action.msg-shadow.busy {
+  opacity: 0.55;
+  pointer-events: none;
+  animation: mini-pulse 1s ease-in-out infinite;
+}
+
+/* Ergebnis der Aussprache-Uebung: ruhiger Block unter der Antwort. Bewusst
+   OHNE Ampelfarben (Design: ein einziger Highlight-Akzent) — korrekt
+   ausgesprochene Woerter bleiben ruhig, die Aufmerksamkeit liegt per --hl auf
+   dem, was noch zu ueben ist. */
+.msg-shadow-result {
+  margin-top: 0.8rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+/* Kopfzeile: Gesamt-Prozent + kurzer Hinweis, in der Optik der Tutor-Kopfzeile. */
+.shadow-score {
+  display: flex;
+  align-items: baseline;
+  gap: 0.55rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+.shadow-pct {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--hl);
+  font-variant-numeric: tabular-nums;
+}
+/* Zielsatz Wort fuer Wort. Etwas mehr Zeilenhoehe fuer die Unterstreichungen. */
+.shadow-words {
+  margin-top: 0.5rem;
+  font-size: 0.98rem;
+  line-height: 1.7;
+}
+.shadow-words .sw-ok { color: var(--text); } /* gut getroffen -> ruhig */
+/* Teils daneben: dezente gepunktete Unterstreichung im Akzent. */
+.shadow-words .sw-mid {
+  color: var(--text);
+  text-decoration: underline dotted color-mix(in srgb, var(--hl) 60%, transparent);
+  text-underline-offset: 3px;
+}
+/* Deutlich daneben: hervorgehoben wie eine Korrektur — hier hinschauen. */
+.shadow-words .sw-bad {
+  color: var(--hl);
+  background: color-mix(in srgb, var(--hl) 15%, transparent);
+  border-radius: 5px;
+  padding: 0 0.18em;
+  font-weight: 600;
+}
+
+/* Wort-Uebersetzung: schwebendes Popover ueber dem doppelt geklickten Wort. */
+.translate-pop {
+  position: absolute;
+  z-index: 60;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  max-width: 280px;
+  padding: 0.5rem 0.8rem;
+  border-radius: 13px;
+  font-size: 0.96rem;
+  color: var(--text);
+  background: rgba(24, 24, 27, 0.97);
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  animation: bubble-in 0.16s ease both;
+  pointer-events: none;
+}
+.translate-pop .tp-word { color: var(--muted); }
+.translate-pop .tp-arrow { color: var(--hl); flex: none; }
+.translate-pop .tp-result { font-weight: 600; }
+.translate-pop .dots i { width: 5px; height: 5px; margin-right: 3px; background: var(--hl); }
+
+/* Einmaliger Hinweis auf die Wort-Uebersetzungs-Geste: schwebt neben dem
+   Uebersetzen-Knopf statt im generischen Bottom-Toast — gleiche Glas-Optik
+   wie .translate-pop, damit der Hinweis wie Teil des Features aussieht statt
+   wie eine generische Systembenachrichtigung (Nutzer-Feedback 2026-07-21:
+   der alte Emoji-Toast wirkte altmodisch). */
+.gesture-hint {
+  position: absolute;
+  z-index: 60;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  max-width: 260px;
+  padding: 0.65rem 0.9rem;
+  border-radius: 13px;
+  font-size: 0.86rem;
+  line-height: 1.35;
+  color: var(--text);
+  background: rgba(24, 24, 27, 0.97);
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  animation: bubble-in 0.25s ease both;
+}
+.gesture-hint svg { flex: none; width: 18px; height: 18px; color: var(--hl); }
+
+/* ------------------------------------------------------------- Talk-Dock */
+
+/* Schwebt transparent ueber dem Chat — keine harte Grenze, nichts wird
+   abgeschnitten. Klicks faengt nur der Inhalt (Composer, Kugel), nicht die
+   leere Flaeche dazwischen. */
+.talk-dock {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 0.6rem 1rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.8rem;
+  z-index: 2;
+  pointer-events: none;
+}
+.talk-dock > * { pointer-events: auto; }
+
+/* Buehne der grossen Kugel: erscheint erst, wenn sie aus der Mini-Kugel
+   der Composer-Leiste herausgeploppt ist */
+#orb-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.55rem;
+  position: relative;
+  z-index: 2; /* Kugel fliegt ueber der Composer-Leiste, nicht dahinter */
+}
+#orb-stage.stage-in .orb-label { animation: label-in 0.5s ease 0.25s both; }
+@keyframes label-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Traegt die Flug-Transition (FLIP) beim Herausploppen aus der Mini-Kugel —
+   und den Flug in die Bildmitte beim Wechsel in den Sprech-only-Modus */
+#orb-wrap {
+  position: relative;
+  transition: transform 0.8s cubic-bezier(0.3, 1.18, 0.4, 1);
+  will-change: transform;
+}
+
+/* =========================== Die Sphäre =========================== */
+
+.orb {
+  --level: 0;
+  --s1: 14s; /* Band-Rotationsgeschwindigkeiten je Zustand */
+  --s2: 19s;
+  --s3: 9s;
+  position: relative;
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: none; /* vertikales Ziehen der Kugel scrollt nicht die Seite */
+}
+
+/* Weicher Lichthof hinter der Kugel */
+.orb-aura {
+  position: absolute;
+  inset: -34%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.12) 38%, transparent 65%);
+  filter: blur(14px);
+  animation: aura 5s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes aura {
+  0%, 100% { opacity: 0.75; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.06); }
+}
+
+/* Dünner Statusring (rot = Aufnahme) */
+.orb-ring {
+  position: absolute;
+  inset: -7px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  pointer-events: none;
+}
+
+/* Die Kugel selbst: glühendes Glas mit dunklen, rotierenden Bändern */
+.sphere {
+  position: absolute;
+  inset: 10px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: radial-gradient(circle at 33% 28%,
+    #ffffff 0%, #f2f2f2 26%, #d9d9d9 44%, #ababab 62%, #757575 82%, #565656 100%);
+  box-shadow:
+    0 0 34px rgba(255, 255, 255, 0.45),
+    0 0 110px rgba(255, 255, 255, 0.18),
+    inset -14px -18px 34px rgba(0, 0, 0, 0.4),
+    inset 8px 10px 26px rgba(255, 255, 255, 0.6);
+  transition: transform 0.1s ease, filter 0.4s ease, box-shadow 0.4s ease;
+  transform: scale(calc(1 + var(--level) * 0.4));
+  display: block;
+}
+.orb:hover .sphere { filter: brightness(1.06); }
+.orb:active .sphere { transform: scale(0.95); }
+
+/* Dunkle Ribbon-Bänder, in 3D gekippt und rotierend (vom Kugelrand
+   beschnitten wirken sie wie Streifen, die um die Kugel laufen) */
+.band {
+  position: absolute;
+  inset: -30%;
+  border-radius: 50%;
+  border: 24px solid rgba(8, 8, 9, 0.72);
+  border-top-color: transparent;
+  border-bottom-color: transparent;
+  filter: blur(1.5px);
+  will-change: transform;
+}
+.band.b1 { animation: spin-b1 var(--s1) linear infinite; }
+.band.b2 { border-width: 30px; border-color: rgba(8, 8, 9, 0.55); border-top-color: transparent; border-bottom-color: transparent; animation: spin-b2 var(--s2) linear infinite reverse; }
+.band.b3 { border-width: 16px; border-color: rgba(8, 8, 9, 0.82); border-top-color: transparent; border-bottom-color: transparent; animation: spin-b3 var(--s3) linear infinite; }
+
+@keyframes spin-b1 {
+  from { transform: rotate3d(1, 0.5, 0.15, 62deg) rotate(0deg); }
+  to { transform: rotate3d(1, 0.5, 0.15, 62deg) rotate(360deg); }
+}
+@keyframes spin-b2 {
+  from { transform: rotate3d(0.9, -0.6, 0.2, 55deg) rotate(0deg); }
+  to { transform: rotate3d(0.9, -0.6, 0.2, 55deg) rotate(360deg); }
+}
+@keyframes spin-b3 {
+  from { transform: rotate3d(0.2, 1, -0.4, 70deg) rotate(0deg); }
+  to { transform: rotate3d(0.2, 1, -0.4, 70deg) rotate(360deg); }
+}
+
+/* Glanzlicht oben links */
+.sheen {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0) 30%),
+    radial-gradient(circle at 68% 80%, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0) 26%);
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+/* WebGL-Kugel: der Shader zeichnet Beleuchtung, Bänder und Randlicht selbst.
+   Die CSS-Bänder/-Glanzlichter dienen nur noch als Fallback ohne WebGL. */
+.sphere.gl { background: transparent; }
+.sphere.gl .band,
+.sphere.gl .sheen { display: none; }
+.sphere-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  border-radius: 50%;
+}
+
+/* --- Zustände --- */
+
+.orb.state-loading { pointer-events: none; }
+.orb.state-loading .sphere { filter: grayscale(1) brightness(0.55); box-shadow: 0 0 18px rgba(255, 255, 255, 0.12), inset -14px -18px 34px rgba(0, 0, 0, 0.5); }
+.orb.state-loading .orb-aura { opacity: 0.25; animation: none; }
+.orb.state-loading { --s1: 30s; --s2: 40s; --s3: 22s; }
+
+.orb.state-listening { --s1: 5s; --s2: 7s; --s3: 3.5s; }
+.orb.state-listening .orb-aura { animation-duration: 2s; }
+.orb.state-listening .orb-ring {
+  border-color: rgba(74, 222, 128, 0.5); /* Akzent: Aufnahme */
+  filter: blur(0.5px);
+  animation: listen-glow 1.8s ease-in-out infinite;
+}
+@keyframes listen-glow {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(1);
+    box-shadow: 0 0 16px rgba(74, 222, 128, 0.4), inset 0 0 12px rgba(74, 222, 128, 0.25);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.035);
+    box-shadow: 0 0 40px rgba(74, 222, 128, 0.75), inset 0 0 22px rgba(74, 222, 128, 0.45);
+  }
+}
+
+.orb.state-transcribing { --s1: 2.5s; --s2: 3.5s; --s3: 1.8s; }
+.orb.state-transcribing .sphere { filter: brightness(0.85); }
+
+.orb.state-thinking { --s1: 1.6s; --s2: 2.2s; --s3: 1.1s; }
+.orb.state-thinking .sphere { animation: think-flicker 1.6s ease-in-out infinite; }
+@keyframes think-flicker {
+  0%, 100% { filter: brightness(0.92); }
+  50% { filter: brightness(1.1); }
+}
+
+.orb.state-speaking { --s1: 4s; --s2: 5.5s; --s3: 2.8s; }
+.orb.state-speaking .orb-aura { animation: aura-speak 0.9s ease-in-out infinite; }
+.orb.state-speaking .sphere { animation: sphere-speak 0.9s ease-in-out infinite; }
+@keyframes aura-speak {
+  0%, 100% { opacity: 0.7; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.1); }
+}
+@keyframes sphere-speak {
+  0%, 100% { box-shadow: 0 0 30px rgba(255,255,255,0.4), 0 0 90px rgba(255,255,255,0.15), inset -14px -18px 34px rgba(0,0,0,0.4), inset 8px 10px 26px rgba(255,255,255,0.6); }
+  50% { box-shadow: 0 0 48px rgba(255,255,255,0.6), 0 0 140px rgba(255,255,255,0.28), inset -14px -18px 34px rgba(0,0,0,0.4), inset 8px 10px 26px rgba(255,255,255,0.6); }
+}
+
+.orb-label {
+  font-size: 0.9rem;
+  color: var(--muted);
+  min-height: 1.4em;
+  text-align: center;
+  /* bleibt lesbar, auch wenn Chat-Bubbles dahinter durchscrollen */
+  text-shadow: 0 1px 10px rgba(5, 5, 6, 0.95), 0 0 24px rgba(5, 5, 6, 0.8);
+}
+
+/* Dezenter Hinweis unter der Kugel: "hochziehen fuer Sprech-Modus" bzw.
+   "nach unten ziehen zum Beenden". Nur sichtbar, wenn Platz genug ist. */
+.orb-hint {
+  font-size: 0.76rem;
+  letter-spacing: 0.01em;
+  color: rgba(255, 255, 255, 0.34);
+  text-align: center;
+  min-height: 1.2em;
+  user-select: none;
+  transition: color 0.3s ease, opacity 0.3s ease;
+  text-shadow: 0 1px 10px rgba(5, 5, 6, 0.9);
+}
+#orb-stage:hover .orb-hint { color: rgba(255, 255, 255, 0.55); }
+
+/* =================== Sprech-only-Modus (Immersion) ===================
+   Chat, Punktraster und Kopfzeile treten unscharf zurueck; die Kugel bleibt
+   gestochen scharf und wird zum leuchtenden Zentrum. Der Grad (--imm) folgt
+   waehrend des Ziehens live dem Finger. */
+
+.app-main .chat {
+  transition: filter 0.4s ease, opacity 0.4s ease;
+  filter: blur(calc(var(--imm) * 22px));
+  opacity: calc(1 - var(--imm) * 0.9);
+}
+#dots {
+  transition: opacity 0.4s ease, filter 0.4s ease;
+  opacity: calc(1 - var(--imm) * 0.55);
+  filter: blur(calc(var(--imm) * 3px));
+}
+.app-header {
+  transition: opacity 0.4s ease, filter 0.4s ease, transform 0.4s ease;
+  opacity: calc(1 - var(--imm) * 0.82);
+  filter: blur(calc(var(--imm) * 4px));
+  transform: translateY(calc(var(--imm) * -8px));
+}
+/* Composer gleitet nach unten weg, sobald der Modus greift */
+.composer {
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  opacity: calc(1 - var(--imm));
+  transform: translateY(calc(var(--imm) * 30px));
+}
+
+/* Ist der Modus voll aktiv, faengt der unscharfe Hintergrund keine Klicks
+   mehr — nur die Kugel bleibt bedienbar. */
+#app.immersion .chat,
+#app.immersion .composer,
+#app.immersion .app-header { pointer-events: none; }
+
+/* Die Kugel schwebt jetzt frei ueber allem — und wird im Sprech-Modus groesser */
+#app.immersion #orb-stage { z-index: 5; }
+#app.immersion .orb {
+  transform: scale(1.24);
+  transition: transform 0.6s cubic-bezier(0.3, 1.18, 0.4, 1);
+}
+.orb { transition: transform 0.6s cubic-bezier(0.3, 1.18, 0.4, 1); }
+#app.immersion .orb-label {
+  font-size: 1.02rem;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+/* Immersion hebt den Lichthof an: groesser, heller, staerker atmend */
+#app.immersion .orb-aura {
+  inset: -55%;
+  background: radial-gradient(circle,
+    rgba(255, 255, 255, 0.5) 0%, rgba(210, 228, 255, 0.22) 34%, rgba(150, 190, 255, 0.08) 55%, transparent 70%);
+  filter: blur(20px);
+  animation: aura-immersion 3.4s ease-in-out infinite;
+}
+@keyframes aura-immersion {
+  0%, 100% { opacity: 0.72; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.14); }
+}
+
+/* Zusaetzlicher, langsam rotierender Energie-Kranz hinter der Kugel */
+#app.immersion .orb::before {
+  content: "";
+  position: absolute;
+  inset: -32%;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg,
+    rgba(255, 255, 255, 0) 0deg,
+    rgba(190, 214, 255, 0.28) 70deg,
+    rgba(255, 255, 255, 0) 150deg,
+    rgba(210, 190, 255, 0.24) 250deg,
+    rgba(255, 255, 255, 0) 330deg);
+  filter: blur(14px);
+  opacity: calc(var(--imm) * 0.9);
+  animation: halo-spin 9s linear infinite;
+  pointer-events: none;
+  z-index: -1;
+}
+@keyframes halo-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ---------------------------------------------------------- Composer-Leiste
+   Pill-Leiste unten: Mini-Kugel links, Eingabefeld, runder Senden-Button */
+
+.composer {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  width: 100%;
+  max-width: 820px;
+  background: linear-gradient(150deg, rgba(38, 38, 42, 0.75) 0%, rgba(16, 16, 18, 0.8) 60%);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.5rem 0.55rem;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.06);
+}
+.composer input {
+  flex: 1;
+  min-width: 0;
+  background: none;
+  border: none;
+  font-size: 1.08rem;
+  color: var(--text);
+  padding: 0.4rem 0;
+}
+.composer input::placeholder { color: var(--muted); }
+.composer input:focus { outline: none; }
+
+/* Die Mini-Kugel: dunkle Glaskugel mit Waveform-Glyphe. Aus ihr ploppt die
+   grosse Kugel heraus. */
+.mini-orb {
+  position: relative;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: none;
+  flex: none;
+  cursor: pointer;
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 32% 26%, #55555e 0%, #2a2a2f 40%, #101012 78%, #060607 100%);
+  box-shadow:
+    inset 0 1.5px 2px rgba(255, 255, 255, 0.4),
+    inset 0 -6px 12px rgba(0, 0, 0, 0.65),
+    0 0 0 1px rgba(255, 255, 255, 0.1),
+    0 5px 16px rgba(0, 0, 0, 0.55);
+  transition: transform 0.15s ease, box-shadow 0.3s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.mini-orb svg {
+  width: 20px;
+  height: 20px;
+  filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.55));
+}
+/* Schraegstrich nur zeigen, wenn die Kugel sichtbar ist (Knopf blendet sie
+   dann aus) — bei ausgeblendeter Kugel normales Mikrofon. */
+.mini-orb .mic-slash { display: none; }
+.mini-orb.orb-visible .mic-slash { display: inline; }
+.mini-orb:hover { transform: scale(1.06); }
+.mini-orb:active { transform: scale(0.94); }
+.mini-orb.state-loading { pointer-events: none; opacity: 0.5; }
+
+/* Kleiner, immer sichtbarer Status-Punkt oben rechts: zeigt unabhaengig vom
+   Glow-Ring eindeutig, ob das Mikro gerade aufnimmt — der Ring allein ist bei
+   flüchtigem Hinsehen (oder für Nutzer mit Farbsehschwäche) leicht zu
+   übersehen, ein fester Punkt mit Aus/An-Zustand nicht. */
+.mini-orb::after {
+  content: '';
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background-color: #5a5a62;
+  border: 2px solid #0a0a0a;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+.mini-orb.state-listening::after {
+  background-color: #4ade80; /* derselbe Mini-Akzent wie „Model ready“ */
+  box-shadow: 0 0 8px rgba(74, 222, 128, 0.9);
+  animation: mic-dot-pulse 1.2s ease-in-out infinite;
+}
+@keyframes mic-dot-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.25); opacity: 0.7; }
+}
+
+.mini-orb.state-listening {
+  box-shadow:
+    inset 0 1.5px 2px rgba(255, 255, 255, 0.4),
+    inset 0 -6px 12px rgba(0, 0, 0, 0.65),
+    0 0 0 2px rgba(74, 222, 128, 0.85),
+    0 0 22px rgba(74, 222, 128, 0.6);
+  animation: mini-pulse 1.5s ease-in-out infinite;
+}
+.mini-orb.state-speaking {
+  box-shadow:
+    inset 0 1.5px 2px rgba(255, 255, 255, 0.4),
+    inset 0 -6px 12px rgba(0, 0, 0, 0.65),
+    0 0 0 1px rgba(255, 255, 255, 0.28),
+    0 0 20px rgba(255, 255, 255, 0.35);
+  animation: mini-pulse 0.9s ease-in-out infinite;
+}
+@keyframes mini-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.07); }
+}
+
+/* Runder weisser Senden-Button mit schwarzem Pfeil */
+.send-btn {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: none;
+  flex: none;
+  cursor: pointer;
+  background: #fff;
+  color: #0a0a0a;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 14px rgba(255, 255, 255, 0.22);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.send-btn svg { width: 22px; height: 22px; margin-left: 2px; }
+.send-btn:hover { transform: scale(1.05); box-shadow: 0 4px 20px rgba(255, 255, 255, 0.35); }
+.send-btn:active { transform: scale(0.94); }
+/* Gesperrt, solange Sam noch antwortet (verhindert Doppel-Senden) */
+.send-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Datei anhaengen: dezenter runder Knopf in der Composer-Leiste */
+.attach-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  flex: none;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s ease, background 0.2s ease, color 0.2s ease;
+}
+.attach-btn svg { width: 20px; height: 20px; }
+.attach-btn:hover { background: rgba(255, 255, 255, 0.12); color: var(--text); transform: scale(1.05); }
+.attach-btn:active { transform: scale(0.94); }
+.attach-btn.has-file { color: #fff; background: rgba(255, 255, 255, 0.16); }
+
+/* Anhang-Chip ueber der Composer-Leiste */
+.context-bar {
+  width: 100%;
+  max-width: 820px;
+  margin: 0 auto 0.5rem;
+  display: flex;
+  justify-content: flex-start;
+}
+.context-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  max-width: 100%;
+  background: linear-gradient(150deg, rgba(38, 38, 42, 0.8), rgba(16, 16, 18, 0.85));
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.4rem 0.5rem 0.4rem 0.8rem;
+  font-size: 0.85rem;
+  color: var(--text);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+}
+.context-chip svg { width: 16px; height: 16px; flex: none; color: var(--muted); }
+.context-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 60vw; }
+.context-remove {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s;
+}
+.context-remove:hover { background: rgba(255, 255, 255, 0.16); color: var(--text); }
+
+/* ------------------------------------------------------------- Overlays */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 3, 4, 0.82);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.2rem;
+  z-index: 50;
+  overflow-y: auto;
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 20px;
+  box-shadow: var(--shadow);
+  padding: 2rem;
+  max-width: 640px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.panel h2 { font-size: 1.5rem; margin-bottom: 0.4rem; }
+.panel h3 { font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 1.6rem 0 0.7rem; }
+.panel-sub { color: var(--muted); font-size: 0.95rem; margin-bottom: 1.4rem; }
+.panel-note { color: var(--muted); font-size: 0.82rem; margin-top: 1rem; text-align: center; }
+.panel-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+
+.hw-summary {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.7rem 1rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-bottom: 1.2rem;
+}
+
+/* Hinweis fuer Smartphones/schwache Geraete: dezent, kein Alarm-Rot — nur ein
+   sichtbar abgesetzter Empfehlungs-Hinweis vor der Modellwahl. */
+.weak-device-warning {
+  background: var(--bg-2);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: 0.7rem 1rem;
+  font-size: 0.85rem;
+  color: var(--text);
+  margin-bottom: 1.2rem;
+  line-height: 1.5;
+}
+
+.quality-legend {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0.9rem 0 0.7rem;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+.quality-legend .ql-bar {
+  flex: 1;
+  height: 5px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, hsl(8, 68%, 48%), hsl(69, 68%, 48%), hsl(130, 68%, 48%));
+}
+.tier-cards { display: flex; flex-direction: column; gap: 0.7rem; }
+.tier-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  text-align: left;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.9rem 1.1rem;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  width: 100%;
+}
+.tier-card:hover { border-color: var(--border-strong); }
+.tier-card.selected { border-color: rgba(255, 255, 255, 0.75); background: rgba(255, 255, 255, 0.06); }
+.tier-card.infeasible { opacity: 0.45; }
+.tier-card .tc-quality {
+  align-self: stretch;
+  flex: 0 0 5px;
+  border-radius: 999px;
+  background: var(--q-color, var(--border-strong));
+  box-shadow: 0 0 8px -1px var(--q-color, transparent);
+}
+.tier-card .tc-info { flex: 1; }
+.tier-card .tc-name { font-weight: 700; display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; }
+.tier-card .tc-desc { font-size: 0.84rem; color: var(--muted); margin-top: 0.15rem; }
+.tier-card .tc-size { font-size: 0.84rem; color: var(--muted); white-space: nowrap; }
+.badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-radius: 999px;
+  padding: 0.15rem 0.6rem;
+  background: var(--grad);
+  color: var(--accent-ink);
+}
+.badge-outline { background: none; border: 1px solid var(--border-strong); color: var(--muted); }
+
+/* Beta-Kennzeichnung neben dem Wordmark (Landing-Nav + App-Header) */
+.beta-badge {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-radius: 999px;
+  padding: 0.16rem 0.5rem;
+  border: 1px solid var(--border-strong);
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.05);
+  flex: none;
+  margin-left: 0.3rem;
+}
+
+.stt-details { margin-top: 1.1rem; }
+.stt-details summary { cursor: pointer; color: var(--muted); font-size: 0.9rem; }
+.stt-options { display: flex; flex-direction: column; gap: 0.6rem; margin-top: 0.8rem; }
+
+/* Sprachauswahl (Setup-Schritt 1): Chips mit Flagge + Endonym */
+.lang-heading { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); margin: 1.3rem 0 0.6rem; }
+.lang-grid { display: flex; flex-wrap: wrap; gap: 0.55rem; }
+.lang-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: border-color 0.15s, background 0.15s, transform 0.15s;
+}
+.lang-chip:hover { border-color: var(--border-strong); transform: translateY(-1px); }
+.lang-chip.selected { border-color: rgba(255, 255, 255, 0.75); background: rgba(255, 255, 255, 0.08); font-weight: 600; }
+.lang-chip[disabled] { opacity: 0.35; cursor: default; pointer-events: none; }
+.lang-chip .lc-flag { font-size: 1.15rem; line-height: 1; }
+#btn-lang-continue { margin-top: 1.6rem; }
+
+/* Zurueck-Link im Modell-Schritt */
+.setup-back {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 0.88rem;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 0.9rem;
+}
+.setup-back:hover { color: var(--text); }
+
+.setup-total { text-align: center; color: var(--muted); font-size: 0.9rem; margin: 1.2rem 0 0.9rem; }
+.setup-total strong { color: var(--text); }
+
+.browser-list { list-style: none; margin: 1rem 0 1.6rem; display: flex; flex-direction: column; gap: 0.5rem; color: var(--muted); }
+
+/* Empfehlungs-Karte im gestrafften Setup */
+.setup-reco {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: var(--bg-2);
+  border: 1px solid var(--border-strong);
+  border-radius: 16px;
+  padding: 1rem 1.2rem;
+  margin: 1.2rem 0 0.9rem;
+}
+.setup-reco .reco-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin-bottom: 0.2rem;
+}
+.setup-reco .reco-name { font-weight: 700; font-size: 1.05rem; }
+.setup-reco .reco-desc { color: var(--muted); font-size: 0.85rem; margin-top: 0.15rem; }
+.setup-reco .reco-size {
+  margin-left: auto;
+  flex: none;
+  font-size: 0.88rem;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+#setup-advanced { margin: 0.4rem 0 0.6rem; }
+#setup-advanced > summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 0.88rem;
+  padding: 0.4rem 0;
+}
+#setup-advanced > summary:hover { color: var(--text); }
+
+/* Gefuehrte App-Tour (Coach-Marks) waehrend des Erst-Downloads */
+.tour-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+}
+.tour-spot {
+  position: fixed;
+  z-index: 70;
+  border-radius: 14px;
+  box-shadow: 0 0 0 200vmax rgba(4, 6, 12, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  pointer-events: none;
+  transition: top 0.35s ease, left 0.35s ease, width 0.35s ease, height 0.35s ease;
+}
+.tour-card {
+  position: fixed;
+  z-index: 71;
+  width: min(92vw, 380px);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  padding: 1.1rem 1.2rem;
+  transition: top 0.35s ease, left 0.35s ease;
+}
+.tour-title { font-size: 1.05rem; margin-bottom: 0.35rem; }
+.tour-body { color: var(--muted); font-size: 0.92rem; line-height: 1.5; }
+.tour-foot { display: flex; align-items: center; gap: 0.7rem; margin-top: 1rem; }
+.tour-skip {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 0.3rem 0;
+}
+.tour-skip:hover { color: var(--text); }
+.tour-count { color: var(--muted); font-size: 0.78rem; margin-left: auto; white-space: nowrap; }
+.tour-nav { display: flex; gap: 0.5rem; flex: none; }
+.tour-nav .btn { padding: 0.45rem 0.95rem; font-size: 0.88rem; }
+
+/* Schwebende Fortschritts-Pille: begleitet Tour & Wartezeit, statt zu blockieren */
+.dl-pill {
+  position: fixed;
+  left: 1rem;
+  bottom: 1rem;
+  z-index: 45;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+  background: rgba(5, 5, 6, 0.85);
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  padding: 0.5rem 1rem;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: var(--shadow);
+  white-space: nowrap;
+}
+.dl-ring { width: 18px; height: 18px; flex: none; transform: rotate(-90deg); }
+.dl-ring circle { fill: none; stroke-width: 3; }
+.dl-ring .ring-track { stroke: rgba(255, 255, 255, 0.15); }
+.dl-ring .ring-val { stroke: #4ade80; stroke-linecap: round; transition: stroke-dashoffset 0.3s ease; }
+.dl-pill.ready { border-color: rgba(74, 222, 128, 0.5); }
+.dl-pill.error { border-color: rgba(255, 107, 107, 0.5); }
+.dl-pill.ready .dl-ring,
+.dl-pill.error .dl-ring { display: none; }
+.dl-pill.ready::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #4ade80;
+  box-shadow: 0 0 8px rgba(74, 222, 128, 0.7);
+  flex: none;
+  animation: pill-pulse 1.6s ease-in-out infinite;
+}
+.dl-pill .btn { padding: 0.25rem 0.7rem; font-size: 0.8rem; }
+@keyframes pill-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tour-spot,
+  .tour-card { transition: none; }
+  .dl-pill.ready::before { animation: none; }
+}
+
+/* ------------------------------------------------------------ Einstellungen
+   Aufbau: feststehende Kopfzeile, darunter der scrollende Inhalt in klar
+   getrennten Abschnitten. Jeder Abschnitt ist eine Karte, deren Zeilen durch
+   Haarlinien getrennt sind — Beschriftung links, Bedienelement rechts.
+   Vorher lagen alle Zeilen als flache, umbrechende Flex-Liste direkt
+   untereinander: Abschnitte waren nur an einer kleinen Grossbuchstaben-Zeile
+   erkennbar, und sobald die Beschriftung breiter war als ihre 130px, sprang
+   das Bedienelement in die naechste Zeile. Genau das liess den Dialog
+   gequetscht und unuebersichtlich wirken. */
+
+.settings-panel {
+  max-width: 600px;
+  /* Innenabstand wandert in Kopf und Koerper, damit nur der Koerper scrollt */
+  padding: 0;
+  overflow: hidden; /* schneidet den Scrollbereich an den runden Ecken ab */
+  display: flex;
+  flex-direction: column;
+  max-height: min(90vh, 800px);
+}
+
+.settings-head {
+  flex: none;
+  padding: 1.35rem 1.6rem 1.1rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 0;
+}
+.settings-head h2 { margin-bottom: 0; }
+
+.settings-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  /* Scrollt der Inhalt zu Ende, soll nicht die Seite dahinter weiterscrollen */
+  overscroll-behavior: contain;
+  padding: 1.3rem 1.6rem max(1.6rem, env(safe-area-inset-bottom));
+}
+
+.set-section + .set-section { margin-top: 1.6rem; }
+.set-section > h3 { margin: 0 0 0.6rem 0.15rem; }
+
+.set-card {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden; /* Haarlinien der Zeilen enden sauber an der Rundung */
+}
+
+/* Eine Zeile: Beschriftung links, Bedienelement rechts. Bewusst kein
+   flex-wrap — stattdessen darf die Beschriftung schrumpfen, waehrend das
+   Bedienelement seine Mindestbreite behaelt. Mindesthoehe 56px, damit die
+   Zeilen auch als Tippziel auf dem Handy taugen. */
+.set-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  min-height: 56px;
+}
+.set-row + .set-row { border-top: 1px solid var(--border); }
+label.set-row { cursor: pointer; }
+
+.set-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  font-size: 0.94rem;
+  line-height: 1.35;
+  min-width: 0;
+}
+/* Erklaerender Zusatz UNTER der Beschriftung statt hinter dem Schalter — dort
+   stand er vorher und drueckte die Zeile in einen dritten Umbruch. */
+.set-label small { font-size: 0.78rem; color: var(--muted); line-height: 1.35; }
+
+.set-row select,
+.set-row .name-input {
+  flex: 0 1 240px;
+  min-width: 150px;
+  max-width: 60%;
+  width: auto;
+}
+
+.set-control { display: flex; align-items: center; gap: 0.6rem; flex: 0 1 240px; min-width: 150px; }
+.set-control input[type='range'] { flex: 1; min-width: 0; accent-color: #ffffff; }
+.set-value {
+  font-size: 0.85rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums; /* Wert springt beim Ziehen nicht */
+  min-width: 3.2em;
+  text-align: right;
+}
+
+/* Zeile ueber die volle Breite (Stimmenauswahl + Anhoeren) */
+.set-row-wide { gap: 0.6rem; }
+.set-row-wide select { flex: 1 1 auto; max-width: none; }
+.set-row-wide .btn { flex: none; }
+
+/* Schalter statt nackter Checkbox: gleiche optische Groesse wie die uebrigen
+   Bedienelemente rechts und sicher zu treffen. */
+.switch {
+  appearance: none;
+  -webkit-appearance: none;
+  flex: none;
+  position: relative;
+  width: 44px;
+  height: 26px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease;
+  /* wie bei den Selects: Windows-Systemfarben nicht durchschlagen lassen */
+  forced-color-adjust: none;
+}
+.switch::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--muted);
+  transform: translateY(-50%);
+  transition: transform 0.18s ease, background 0.18s ease;
+}
+.switch:checked { background: var(--accent); border-color: var(--accent); }
+.switch:checked::after { background: var(--accent-ink); transform: translate(18px, -50%); }
+.switch:focus-visible { outline: 2px solid rgba(255, 255, 255, 0.5); outline-offset: 2px; }
+
+.model-list { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 0.8rem; }
+.model-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.75rem 1rem;
+  font-size: 0.92rem;
+}
+.model-row.active { border-color: var(--border-strong); background: var(--surface-2); }
+.model-row .mr-name { flex: 1 1 auto; min-width: 8rem; }
+.model-row .mr-name .badge { margin-left: 0.4rem; vertical-align: middle; }
+.model-row .mr-meta { color: var(--muted); font-size: 0.8rem; }
+.model-row .mr-actions { display: flex; gap: 0.5rem; flex: none; }
+.model-row .btn { flex: none; }
+
+.storage-info { color: var(--muted); font-size: 0.84rem; margin: 0 0 0.85rem; }
+.settings-wipe { width: 100%; }
+
+/* Schmale Displays: Beschriftung und Bedienelement nebeneinander wird zu eng,
+   also untereinander — ausser bei den Schalter-Zeilen, die als Zweispalter
+   deutlich besser lesbar bleiben. */
+@media (max-width: 560px) {
+  #settings-modal { padding: 0.7rem; }
+  .settings-panel { max-height: calc(100dvh - 1.4rem); }
+  .settings-head { padding: 1.1rem 1.1rem 0.9rem; }
+  .settings-body { padding: 1.1rem 1.1rem max(1.4rem, env(safe-area-inset-bottom)); }
+  .set-row { padding: 0.75rem 0.85rem; flex-direction: column; align-items: stretch; gap: 0.5rem; }
+  .set-row select,
+  .set-row .name-input,
+  .set-control { flex: 1 1 auto; max-width: none; width: 100%; }
+  .set-toggle { flex-direction: row; align-items: center; gap: 1rem; }
+  .set-toggle .set-label { flex: 1; }
+  /* Auswahl + Anhoeren bleiben nebeneinander: das Select darf dafuer bis auf
+     null schrumpfen, sonst waere der Probe-Knopf ueber die volle Breite ein
+     falsches Gewicht neben den echten Aktionen. */
+  .set-row-wide { flex-direction: row; align-items: center; }
+  .set-row-wide select { flex: 1 1 auto; min-width: 0; width: auto; }
+  .set-row-wide .btn { flex: none; width: auto; }
+  /* Modell-Knoepfe geschlossen in die zweite Zeile, rechtsbuendig */
+  .model-row .mr-meta { margin-left: auto; }
+  .model-row .mr-actions { flex: 1 0 100%; justify-content: flex-end; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .switch,
+  .switch::after { transition: none; }
+}
+
+/* Inline-Fehlermeldung im Setup-Dialog */
+.setup-error {
+  color: var(--danger);
+  font-size: 0.9rem;
+  text-align: center;
+  margin-top: 0.9rem;
+  background: rgba(255, 107, 107, 0.08);
+  border: 1px solid rgba(255, 107, 107, 0.3);
+  border-radius: var(--radius-sm);
+  padding: 0.6rem 0.9rem;
+}
+
+/* Toasts */
+.toasts {
+  position: fixed;
+  bottom: 1.2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  z-index: 100;
+  width: min(92vw, 480px);
+  /* Container darf Klicks nie blockieren — nur die Toasts selbst sind klickbar */
+  pointer-events: none;
+}
+.toast {
+  pointer-events: auto;
+  background: var(--surface-2);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: 0.8rem 1.1rem;
+  font-size: 0.9rem;
+  box-shadow: var(--shadow);
+  animation: bubble-in 0.25s ease both;
+}
+.toast.error { border-color: rgba(255, 107, 107, 0.5); }
+
+/* Responsive */
+@media (max-width: 640px) {
+  /* ---------------------------------------------------- Nav-Insel (mobil)
+     Logo + Sprachwaehler + CTA muessen zusammen in eine Zeile passen, ohne
+     dass der CTA rechts aus dem Bild geschoben wird. Alles wird kompakter,
+     das Beta-Chip weicht (Beta steht weiter im Seitentitel + Hero). */
+  .nav-links { display: none; }
+  .nav-wrap { top: max(0.55rem, env(safe-area-inset-top)); padding-left: max(0.6rem, env(safe-area-inset-left)); padding-right: max(0.6rem, env(safe-area-inset-right)); }
+  .nav { gap: 0.4rem; padding: 0.38rem 0.42rem 0.38rem 0.85rem; }
+  .logo { font-size: 1.04rem; gap: 0.45rem; }
+  .logo-mark { width: 26px; height: 26px; }
+  .beta-badge { display: none; }
+  .nav-right { gap: 0.45rem; }
+  .nav .btn-sm { padding: 0.44rem 0.85rem; font-size: 0.85rem; }
+
+  /* Sprachwaehler zur kompakten Flaggen-Pille — spart ~50px gegenueber dem
+     ausgeschriebenen Namen, damit Wortmarke + CTA sicher in die Zeile passen. */
+  .lang-switch {
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 999px;
+    padding: 0.3rem 0.62rem;
+    min-height: 38px;
+  }
+  .lang-flag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.32rem;
+    font-size: 1.02rem;
+    line-height: 1;
+  }
+  .lang-flag::after { content: '▾'; font-size: 0.66rem; color: var(--muted); }
+  .lang-switch .lang-select {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    padding: 0;
+    margin: 0;
+    border: 0;
+    opacity: 0; /* echtes Select liegt unsichtbar ueber der Flaggen-Pille */
+    cursor: pointer;
+  }
+
+  /* ------------------------------------------------------------- Hero (mobil) */
+  .hero { padding: 3rem 1.2rem 2.5rem; }
+  .hero-stage { min-height: calc(100svh - 5rem); padding-bottom: 5rem; }
+  .hero-stage h1 { font-size: clamp(2.15rem, 8.4vw, 3rem); }
+  .hero-stage .hero-sub { font-size: 1.05rem; }
+  .hero-sub { margin: 1.2rem auto 1.7rem; }
+  /* CTA-Paar wird zu vollbreiten, gestapelten Knoepfen mit grossem Tap-Ziel */
+  .hero-actions { flex-direction: column; align-items: stretch; width: 100%; max-width: 340px; gap: 0.7rem; }
+  .hero-actions .btn { width: 100%; }
+
+  /* -------------------------------------------------- Sektions-Rhythmus (mobil) */
+  .section { padding: 3.2rem 1.15rem; }
+  .section-sub { margin-bottom: 2rem; font-size: 1rem; }
+  .hero-extra { padding-bottom: 2.8rem; }
+  .hero-extra .hero-demo { margin-top: 2.2rem; }
+  .card { padding: 1.4rem; }
+  .chart-card { padding: 1.3rem 1.2rem 1.15rem; }
+  .bignum { padding: 1.2rem 1.3rem; }
+  .faq details { padding: 0.9rem 1.1rem; }
+  .privacy-points { gap: 1.2rem; }
+
+  /* Schmale Screens: Seitenkegel rutschen halb aus dem Bild, rahmen aber weiter */
+  .beam { width: 62vw; filter: blur(16px); }
+  .beam-l { left: -16vw; }
+  .beam-r { right: -16vw; }
+  .beam-c { margin-left: -31vw; }
+  .stage-glow { top: 20vh; height: 360px; }
+  .header-card { padding: 0.8rem 0.9rem 0.8rem; border-radius: 22px; gap: 0.6rem 0.7rem; }
+  .hc-icon { width: 42px; height: 42px; }
+  .hc-title { font-size: 1.2rem; }
+  .hc-sub select { max-width: 132px; }
+  .msg { max-width: 92%; }
+  /* Tour-Karte wird zum Bottom-Sheet, Pille rutscht ueber den Composer
+     (unten mittig kollidieren sonst die Toasts) */
+  .tour-card {
+    top: auto !important;
+    left: 0 !important;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    border-radius: 18px 18px 0 0;
+    padding-bottom: calc(1.1rem + env(safe-area-inset-bottom));
+  }
+  .dl-pill { left: 50%; transform: translateX(-50%); bottom: 5.4rem; }
+  .orb { width: 128px; height: 128px; }
+  .mini-orb, .send-btn { width: 46px; height: 46px; }
+  .composer input { font-size: 1rem; }
+}
+
+/* Sehr schmale Phones (kleine iPhones/Androids): letzter Feinschliff, damit
+   die Nav-Insel garantiert nicht ueberlaeuft und die Bühne nicht erdrueckt. */
+@media (max-width: 380px) {
+  .nav { padding: 0.34rem 0.38rem 0.34rem 0.72rem; gap: 0.32rem; }
+  .logo { font-size: 0.94rem; gap: 0.38rem; }
+  .logo-mark { width: 23px; height: 23px; }
+  .nav-right { gap: 0.32rem; }
+  .lang-switch { padding: 0.3rem 0.52rem; }
+  .lang-flag { font-size: 0.96rem; gap: 0.26rem; }
+  .nav .btn-sm { padding: 0.42rem 0.66rem; font-size: 0.8rem; }
+  .hero-stage h1 { font-size: clamp(1.95rem, 8.8vw, 2.6rem); }
+  .section { padding: 2.8rem 1rem; }
+  .hero { padding: 2.6rem 1rem 2.2rem; }
+}
+
+/* Touch-Geraete (kein echter Hover): Hover-Effekte nicht am Finger „kleben"
+   lassen — nach dem Antippen bliebe sonst Karten-Glow/Anhebung haengen. */
+@media (hover: none) {
+  .card:hover, .tier-card:hover, .faq details:hover { transform: none; border-color: var(--border); }
+  .card:hover::after, .tier-card:hover::after, .faq details:hover::after { opacity: 0; }
+  .btn-primary:hover { transform: none; box-shadow: 0 4px 24px rgba(255, 255, 255, 0.18); }
+  .btn-ghost:hover { background: transparent; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+
+/* ======================= Legenden-Modus (Personas) ======================= */
+
+/* Animiertes Portraet ersetzt die Kugel im Orb-Button */
+.avatar-layer {
+  position: absolute;
+  inset: 10px;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow:
+    0 0 34px rgba(255, 255, 255, 0.18),
+    inset 0 0 20px rgba(0, 0, 0, 0.5);
+}
+.avatar-layer:empty { display: none; }
+.avatar-svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+/* Im Legenden-Modus ersetzt das Portraet die fancy Kugel: die Sphaere und der
+   rotierende Immersions-Kranz bleiben komplett aus. */
+#orb.has-avatar .sphere { display: none; }
+#orb.has-avatar::before { content: none; }
+
+/* Statt der fancy Kugel liegt hinter dem Gesicht eine schlichte weiss-graue
+   Glow-Kugel. Sie leuchtet mit der Lautstaerke deiner Eingabe (--level) heller
+   auf und pulsiert leicht — reagiert also nur auf DEINE Stimme (beim Zuhoeren
+   gesetzt), nicht auf die Antwort der Legende. */
+#orb.has-avatar .orb-aura {
+  display: block;
+  inset: -20%;
+  background: radial-gradient(circle,
+    rgba(244, 246, 249, calc(0.4 + var(--level, 0) * 0.55)) 0%,
+    rgba(206, 210, 218, calc(0.16 + var(--level, 0) * 0.34)) 42%,
+    transparent 70%);
+  filter: blur(15px);
+  transform: scale(calc(1 + var(--level, 0) * 0.13));
+  transition: transform 0.1s ease;
+  animation: none;
+}
+
+/* Persona-Chip im Header (ersetzt das Szenario-Menü im Legenden-Modus) */
+.persona-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.1rem 0.6rem;
+  font-size: 0.8rem;
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+.persona-chip:hover { background: rgba(255, 255, 255, 0.14); }
+.persona-chip::before { content: '✦'; font-size: 0.7em; opacity: 0.7; }
+.persona-chip::after { content: '✕'; font-size: 0.72em; opacity: 0.55; margin-left: 0.15rem; }
+
+/* Galerie */
+.persona-panel { max-width: 820px; }
+
+/* Umschalter Legenden ↔ Natives: Pillen-Segmentschalter im Stil der Nav-Insel.
+   Aktiver Tab invertiert (weiss auf schwarz) — ein Blick genuegt. */
+.persona-tabs {
+  display: inline-flex;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  margin-bottom: 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+}
+.pt-tab {
+  /* border/background MUESSEN hier stehen: Ohne Reset zeigt der inaktive
+     Reiter Chromes Standard-Button-Optik (grauer Rahmen auf grauer Flaeche)
+     und sieht dadurch deaktiviert aus. Der aktive Reiter verdeckte das nur
+     mit seiner weissen Flaeche, weshalb es lange nicht auffiel. */
+  border: none;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 999px;
+  padding: 0.4rem 1.1rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  /* --accent-2 statt --muted: Der inaktive Reiter steht direkt neben einer
+     reinweissen Pille und wirkt mit --muted ausgewaschen. Kontrast steigt
+     damit von rund 6,4:1 auf rund 9,9:1. */
+  color: var(--accent-2);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.pt-tab:hover { color: var(--text); background: rgba(255, 255, 255, 0.14); }
+.pt-tab.active { color: var(--accent-ink); background: var(--accent); }
+.pt-tab.active:hover { background: var(--accent); }
+
+/* Haftungsausschluss-Dialoge (allgemein + Legenden-Zugang) */
+.disclaimer-panel { max-width: 620px; }
+.disclaimer-body { color: var(--muted); font-size: 0.92rem; line-height: 1.6; margin-bottom: 1.4rem; }
+.disclaimer-body p { margin-bottom: 0.9rem; }
+.disclaimer-body p:last-child { margin-bottom: 0; }
+/* Rechtlicher Hinweis: KI-Nachbildungen, keine echten Personen/Zitate.
+   Bewusst prominent ueber der Galerie statt klein am Rand. */
+.persona-disclaimer {
+  margin: -0.6rem 0 1.3rem;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid color-mix(in srgb, var(--hl) 35%, rgba(255, 255, 255, 0.14));
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--hl) 8%, transparent);
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+.persona-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.7rem;
+}
+.persona-card {
+  --pa: #ffffff;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.9rem 0.6rem 0.8rem;
+  cursor: pointer;
+  text-align: center;
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.persona-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--border-strong);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
+}
+.persona-card.selected {
+  border-color: rgba(255, 255, 255, 0.55);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.35), 0 8px 28px rgba(0, 0, 0, 0.45);
+}
+.persona-card .pc-portrait {
+  position: relative; /* haelt das absolut positionierte .avatar-svg im 84px-Kreis */
+  width: 84px;
+  height: 84px;
+  flex: none;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-bottom: 0.45rem;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1), 0 0 22px color-mix(in srgb, var(--pa) 35%, transparent);
+}
+.persona-card .pc-portrait svg { width: 100%; height: 100%; display: block; }
+.persona-card .pc-name { font-weight: 700; font-size: 0.92rem; line-height: 1.25; }
+.persona-card .pc-years { font-size: 0.72rem; color: var(--muted); }
+.persona-card .pc-tag { font-size: 0.76rem; color: var(--muted); line-height: 1.35; margin-top: 0.15rem; }
+.persona-card .pc-langs { font-size: 0.78rem; margin-top: 0.35rem; letter-spacing: 0.1em; }
+.persona-card .badge { position: absolute; top: 0.55rem; right: 0.55rem; }
+
+/* Karte "Dein Tutor": die echte Sprech-Kugel als kompakte Vorschau */
+.persona-card.pc-tutor .pc-portrait.pc-orb {
+  background: #0e0e10;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1), 0 0 22px rgba(255, 255, 255, 0.22);
+}
+.pc-orb .sphere {
+  position: absolute;
+  inset: 0;
+  --level: 0;
+  --s1: 14s; --s2: 19s; --s3: 9s;
+  transform: none;
+  box-shadow:
+    0 0 18px rgba(255, 255, 255, 0.35),
+    inset -10px -12px 22px rgba(0, 0, 0, 0.4),
+    inset 6px 7px 18px rgba(255, 255, 255, 0.6);
+}
+
+/* Akzent-getoente Sprech-Kugel (eigener Charakter, Karte + Vorschau) */
+.pc-orb-tint {
+  background: #0e0e10;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1), 0 0 24px color-mix(in srgb, var(--pa, #6c8cff) 55%, transparent);
+}
+.pc-orb-tint .sphere {
+  background: radial-gradient(circle at 33% 28%,
+    color-mix(in srgb, var(--pa, #6c8cff) 55%, #ffffff) 0%,
+    var(--pa, #6c8cff) 52%,
+    color-mix(in srgb, var(--pa, #6c8cff) 55%, #000000) 100%);
+}
+/* Im echten Gespraech faerbt der eigene Charakter den Kugel-Lichthof */
+#orb.custom-orb .orb-aura {
+  background: radial-gradient(circle,
+    color-mix(in srgb, var(--paccent, #6c8cff) 75%, #ffffff) 0%,
+    color-mix(in srgb, var(--paccent, #6c8cff) 32%, transparent) 44%,
+    transparent 66%);
+}
+
+/* Karte "Eigenen Charakter erstellen" */
+.persona-card.pc-create { border-style: dashed; }
+.persona-card.pc-create .pc-portrait.pc-plus {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.4rem;
+  font-weight: 300;
+  line-height: 1;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.12);
+}
+.persona-card.pc-create:hover .pc-portrait.pc-plus { color: var(--text); }
+
+/* Karte des gespeicherten eigenen Charakters + Bearbeiten-Stift */
+.persona-card.pc-custom .pc-edit {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 0.8rem;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.08);
+}
+.persona-card.pc-custom .pc-edit:hover { color: var(--text); background: rgba(255, 255, 255, 0.16); }
+
+/* ---------------------------- Charakter-Builder ---------------------------- */
+.custom-panel { max-width: 780px; }
+.custom-layout {
+  display: grid;
+  grid-template-columns: 1fr 200px;
+  gap: 1.4rem;
+  align-items: start;
+}
+.custom-form { display: flex; flex-direction: column; gap: 1rem; min-width: 0; }
+.cf-field { display: flex; flex-direction: column; gap: 0.4rem; }
+.cf-label { font-size: 0.82rem; font-weight: 600; color: var(--muted); }
+.custom-form input,
+.custom-form textarea {
+  width: 100%;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.95rem;
+  padding: 0.6rem 0.75rem;
+  transition: border-color 0.15s;
+}
+.custom-form input:focus,
+.custom-form textarea:focus { outline: none; border-color: var(--border-strong); }
+.custom-form textarea { resize: vertical; min-height: 3.4rem; line-height: 1.4; }
+.cf-chips { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.cf-chip {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 0.8rem;
+  padding: 0.22rem 0.66rem;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.cf-chip::before { content: '+ '; opacity: 0.6; }
+.cf-chip:hover { background: rgba(255, 255, 255, 0.12); color: var(--text); }
+.cf-chip.added { border-color: var(--border-strong); color: var(--text); opacity: 0.6; }
+.cf-colors { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.cf-color {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.12s;
+}
+.cf-color:hover { transform: scale(1.12); }
+.cf-color.selected { border-color: #fff; box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.5) inset; }
+
+/* Stimmen-Auswahl im Builder: Dropdown + kompakter Anhören-Knopf */
+.cf-voice-row { display: flex; gap: 0.5rem; align-items: center; }
+.cf-voice-row select {
+  flex: 1;
+  min-width: 0;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.95rem;
+  padding: 0.6rem 0.75rem;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.cf-voice-row select:focus { outline: none; border-color: var(--border-strong); }
+.cf-voice-row .btn { flex: none; }
+
+/* Live-Vorschau rechts */
+.custom-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.5rem;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.2rem 0.9rem;
+  position: sticky;
+  top: 0;
+}
+.cp-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.cp-orb {
+  position: relative;
+  width: 104px;
+  height: 104px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin: 0.3rem 0 0.4rem;
+}
+.cp-name { font-weight: 700; font-size: 1rem; line-height: 1.2; }
+.cp-role { font-size: 0.82rem; color: var(--muted); line-height: 1.35; }
+.custom-actions { margin-top: 1.4rem; display: flex; justify-content: flex-end; }
+.custom-actions .btn-primary { min-width: 12rem; }
+
+@media (max-width: 620px) {
+  .custom-layout { grid-template-columns: 1fr; }
+  .custom-preview { order: -1; position: static; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .msg-result,
+  .result-stars .star .star-fill,
+  .result-stars .star .star-base,
+  .result-badge { animation: none; }
+  .hc-btn.hc-feat, .hc-btn-solid, .hc-btn-solid svg { transition: none; transform: none !important; }
+}
+
+/* Enger Header auf dem Handy: Knoepfe kompakter */
+@media (max-width: 640px) {
+  .hc-info { min-width: 0; }
+  .hc-actions { gap: 0.3rem; }
+  .hc-btn { width: 46px; height: 35px; }
+  .hc-btn svg { width: 19px; height: 19px; }
+  .hc-div { display: none; }
+}
+
+/* ==========================================================================
+   Rechtsseiten (Impressum / Datenschutz) — eigene Views, via Router getoggelt
+   ========================================================================== */
+.legal-view {
+  min-height: 100vh;
+  background: var(--bg);
+  padding: 3.5rem 1.25rem 5rem;
+}
+.legal-wrap {
+  max-width: 760px;
+  margin: 0 auto;
+  color: var(--text);
+  line-height: 1.65;
+}
+.legal-back {
+  display: inline-block;
+  margin-bottom: 1.6rem;
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+.legal-back:hover { color: var(--text); }
+.legal-head { margin-bottom: 2.2rem; }
+.legal-kicker {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--hl);
+  margin-bottom: 0.7rem;
+}
+.legal-wrap h1 {
+  font-size: 2.1rem;
+  line-height: 1.1;
+  margin: 0 0 0.5rem;
+  background: var(--grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.legal-wrap h2 { font-size: 1.15rem; margin: 2rem 0 0.5rem; }
+
+/* Lizenzseite: Paket- und Modelltabellen (aus src/generated/licenses.ts) */
+.license-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.4rem;
+  margin: 0.8rem 0 0;
+}
+.license-table {
+  margin-top: 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  /* Schmale Bildschirme: lieber die Tabelle scrollen als die ganze Seite */
+  overflow-x: auto;
+}
+.license-row {
+  display: grid;
+  grid-template-columns: minmax(11rem, 1fr) 6rem minmax(8rem, 12rem);
+  gap: 0.8rem;
+  padding: 0.5rem 0.8rem;
+  font-size: 0.85rem;
+  border-bottom: 1px solid var(--border);
+}
+.license-row:last-child { border-bottom: none; }
+.license-row > div:nth-child(2),
+.license-row > div:nth-child(3) { color: var(--muted); }
+.license-head {
+  font-weight: 600;
+  background: var(--bg-2);
+}
+.license-head > div { color: var(--text) !important; }
+.legal-wrap h3 { font-size: 1rem; margin: 1.4rem 0 0.4rem; }
+.legal-updated { color: var(--muted); font-size: 0.85rem; margin: 0; }
+.legal-lead {
+  font-size: 1.08rem;
+  line-height: 1.6;
+  color: var(--text);
+  opacity: 0.92;
+  margin: 0 0 1rem;
+}
+
+/* Auto-nummerierte Abschnitte (Nutzungsbedingungen) */
+.legal-numbered { counter-reset: legalsec; }
+.legal-sec {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+.legal-sec:first-child { margin-top: 0.5rem; padding-top: 0; border-top: none; }
+.legal-sec h2 {
+  display: flex;
+  align-items: baseline;
+  gap: 0.7rem;
+  margin: 0 0 0.5rem;
+}
+.legal-sec h2::before {
+  counter-increment: legalsec;
+  content: counter(legalsec, decimal-leading-zero);
+  color: var(--hl);
+  font-size: 0.82em;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.85;
+}
+.legal-sec p { margin: 0; }
+
+/* Querverlinkung zwischen den Rechtsseiten */
+.legal-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 2.6rem;
+  padding-top: 1.6rem;
+  border-top: 1px solid var(--border);
+}
+.legal-nav a {
+  padding: 0.5rem 1.05rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.88rem;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+.legal-nav a:hover { color: var(--text); border-color: var(--hl); }
+.legal-wrap p { color: var(--muted); margin: 0 0 0.9rem; }
+.legal-wrap ul { color: var(--muted); margin: 0 0 0.9rem; padding-left: 1.2rem; }
+.legal-wrap li { margin-bottom: 0.4rem; }
+.legal-wrap strong { color: var(--text); }
+.legal-wrap a { color: var(--hl); }
+.legal-wrap code {
+  font-size: 0.9em;
+  padding: 0.05em 0.35em;
+  border-radius: 5px;
+  background: var(--surface-2);
+}
+.legal-links-inline { margin-top: 2rem; }
+
+/* In-App-Rechtslinks unten im Einstellungen-Panel */
+.settings-legal {
+  margin-top: 1.6rem;
+  padding-top: 1.1rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 0.6rem;
+  justify-content: center;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.settings-legal a { color: var(--muted); text-decoration: none; }
+.settings-legal a:hover { color: var(--hl); }
+
+
+/* ============================ Unterstuetzen (Stripe) ===================== */
+
+.support-section { text-align: center; }
+.support-inner { max-width: 620px; margin: 0 auto; }
+
+/* Herz-Icon (auch im Erinnerungs-Popup) */
+.donate-heart {
+  width: 58px;
+  height: 58px;
+  margin: 0 auto 1.3rem;
+  border-radius: 50%;
+  background: var(--grad);
+  color: var(--accent-ink);
+  font-size: 1.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 30px rgba(255, 255, 255, 0.22);
+  animation: heart-pulse 2.6s ease-in-out infinite;
+}
+@keyframes heart-pulse {
+  0%, 100% { transform: scale(1); }
+  12% { transform: scale(1.09); }
+  24% { transform: scale(1); }
+  36% { transform: scale(1.06); }
+  48% { transform: scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .donate-heart, .donate-modal-heart { animation: none; }
+}
+
+/* Karte, die die Betragswahl bzw. das Zahlformular fasst */
+.support-card {
+  max-width: 460px;
+  margin: 2rem auto 0;
+  padding: 1.6rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  text-align: left;
+}
+
+/* Betrags-Pillen */
+.support-amounts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-bottom: 1.2rem;
+}
+.support-amount {
+  flex: 1 1 0;
+  min-width: 64px;
+  padding: 0.7rem 0.5rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text);
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.support-amount:hover { background: rgba(255, 255, 255, 0.06); }
+.support-amount:active { transform: scale(0.97); }
+.support-amount.is-active {
+  background: var(--grad);
+  color: var(--accent-ink);
+  border-color: transparent;
+  box-shadow: 0 4px 20px rgba(255, 255, 255, 0.16);
+}
+
+/* Eigener Betrag */
+.support-custom-wrap {
+  position: relative;
+  flex: 1 1 100%;
+  display: flex;
+  align-items: center;
+}
+.support-custom {
+  width: 100%;
+  padding: 0.7rem 1.9rem 0.7rem 1rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  background: var(--bg-2);
+  color: var(--text);
+  font-size: 1rem;
+  font-family: inherit;
+}
+.support-custom:focus { outline: none; border-color: var(--hl); }
+.support-custom-cur {
+  position: absolute;
+  right: 1rem;
+  color: var(--muted);
+  pointer-events: none;
+}
+.support-custom::-webkit-outer-spin-button,
+.support-custom::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.support-custom { -moz-appearance: textfield; appearance: textfield; }
+
+.support-cta { width: 100%; }
+
+/* Stripe Payment Element */
+#support-element { margin-bottom: 1.1rem; min-height: 40px; }
+
+.support-error {
+  margin: 0.9rem 0 0;
+  padding: 0.6rem 0.8rem;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 107, 107, 0.1);
+  border: 1px solid rgba(255, 107, 107, 0.3);
+  color: var(--danger);
+  font-size: 0.88rem;
+}
+.support-secure {
+  margin: 0.9rem 0 0;
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+/* Vertrauenshinweis unter dem Zahlformular — bewusst leiser als .support-secure:
+   erklaert das Wichtigste (Daten gehen direkt zu Stripe), draengt sich aber
+   nicht vor den Bezahl-Knopf. */
+.support-trust {
+  margin: 0.4rem auto 0;
+  max-width: 42ch;
+  text-align: center;
+  font-size: 0.73rem;
+  line-height: 1.5;
+  color: color-mix(in srgb, var(--muted) 75%, transparent);
+}
+
+/* Kopfzeile der Zahl-Ansicht: links zurueck zum Betrag, rechts der gewaehlte
+   Betrag als staendige Rueckversicherung ("was zahle ich hier eigentlich?"). */
+.support-payhead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.9rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.support-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.7rem 0.4rem 0.55rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.support-back:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+.support-back:focus-visible { outline: 2px solid var(--hl); outline-offset: 2px; }
+.support-back:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.support-chosen-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1.2;
+}
+.support-chosen-label {
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.support-chosen { font-size: 1.05rem; color: var(--hl); }
+
+@media (max-width: 460px) {
+  .support-back span:last-child { display: none; } /* nur der Pfeil */
+  .support-back { padding: 0.4rem 0.6rem; }
+}
+
+/* Erfolg */
+#support-success { text-align: center; padding: 0.6rem 0; }
+.support-check {
+  width: 54px;
+  height: 54px;
+  margin: 0 auto 1rem;
+  border-radius: 50%;
+  background: rgba(74, 222, 128, 0.14);
+  border: 1px solid var(--hl);
+  color: var(--hl);
+  font-size: 1.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#support-success h3 { margin: 0 0 0.4rem; font-size: 1.15rem; }
+#support-success p { margin: 0; color: var(--muted); font-size: 0.95rem; }
+
+.support-soon {
+  margin: 0;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+
+.donate-note {
+  margin-top: 1.3rem;
+  font-size: 0.84rem;
+  color: var(--muted);
+  opacity: 0.85;
+}
+
+/* -------- „Schon gewusst?“ — einmaliger Tipp zur Korrektur-Geste -------- */
+#hint-modal { z-index: 60; }
+.hint-modal-panel {
+  max-width: 25rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.hint-modal-panel .panel-head { width: 100%; }
+/* Die Geste in klein: eigene Blase (weiss, rechts) mit Tipp-Welle, darunter
+   die Antwort, die dabei verschwindet. Reine Platzhalter-Balken statt Text —
+   der Hinweis soll in jeder Sprache gleich funktionieren. */
+.hint-demo {
+  width: 100%;
+  margin: 0.4rem 0 1.2rem;
+  padding: 1rem;
+  border-radius: 16px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.hint-demo-bubble,
+.hint-demo-reply {
+  border-radius: 14px;
+  padding: 0.6rem 0.7rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.hint-demo-bubble {
+  position: relative;
+  align-self: flex-end;
+  width: 62%;
+  background: #fff;
+  border-bottom-right-radius: 5px;
+  box-shadow: 0 0 0 2px var(--hl);
+}
+.hint-demo-bubble .hint-demo-line { background: rgba(10, 10, 10, 0.75); }
+.hint-demo-reply {
+  align-self: flex-start;
+  width: 72%;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid var(--border);
+  border-bottom-left-radius: 5px;
+  animation: hint-demo-fade 3.2s ease-in-out infinite;
+}
+.hint-demo-line {
+  height: 6px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.28);
+}
+.hint-demo-line.short { width: 55%; }
+/* Tipp-Punkt auf der eigenen Blase, mit auslaufender Welle */
+.hint-demo-tap {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 13px;
+  height: 13px;
+  margin: -6.5px 0 0 -6.5px;
+  border-radius: 50%;
+  background: var(--hl);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.9);
+}
+.hint-demo-tap::after {
+  content: '';
+  position: absolute;
+  inset: -5px;
+  border-radius: 50%;
+  border: 2px solid var(--hl);
+  animation: hint-demo-tap 3.2s ease-out infinite;
+}
+@keyframes hint-demo-tap {
+  0% { transform: scale(0.55); opacity: 0.95; }
+  55%, 100% { transform: scale(2.4); opacity: 0; }
+}
+@keyframes hint-demo-fade {
+  0%, 12% { opacity: 1; transform: none; }
+  32%, 88% { opacity: 0.12; transform: translateY(4px) scale(0.98); }
+  100% { opacity: 1; transform: none; }
+}
+.hint-modal-text { margin: 0 0 1.4rem; color: var(--muted); font-size: 0.95rem; line-height: 1.55; }
+.hint-modal-text strong { color: var(--text); font-weight: 600; }
+.hint-modal-panel .btn { width: 100%; }
+@media (prefers-reduced-motion: reduce) {
+  .hint-demo-tap::after { animation: none; opacity: 0.5; transform: scale(1); }
+  .hint-demo-reply { animation: none; opacity: 0.3; }
+}
+
+/* -------- Unterstuetzungs-Erinnerung (Popup) -------- */
+#donate-modal { z-index: 60; }
+.donate-modal-panel {
+  max-width: 26rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.donate-modal-panel .panel-head { width: 100%; }
+.donate-modal-heart {
+  width: 52px;
+  height: 52px;
+  margin: 0.2rem 0 1rem;
+  border-radius: 50%;
+  background: var(--grad);
+  color: var(--accent-ink);
+  font-size: 1.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 26px rgba(255, 255, 255, 0.2);
+  animation: heart-pulse 2.6s ease-in-out infinite;
+}
+.donate-modal-pitch { margin: 0 0 1.4rem; color: var(--muted); font-size: 0.95rem; line-height: 1.55; }
+.donate-modal-panel .btn { width: 100%; }
+#btn-donate-later { margin-top: 0.6rem; }
+.link-btn {
+  margin-top: 0.9rem;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.link-btn:hover { color: var(--text); }
+
