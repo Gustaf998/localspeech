@@ -7,7 +7,7 @@
   "license": "GPL-3.0-or-later",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/b3002025/browserofflineai.git"
+    "url": "git+https://github.com/Gustaf998/localspeech.git"
   },
   "scripts": {
     "dev": "vite",

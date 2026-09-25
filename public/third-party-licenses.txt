@@ -6,7 +6,7 @@ LocalSpeech selbst steht unter der GNU General Public License v3.0 oder spaeter
 (siehe LICENSE im Quelltext). Grund: Die Aussprache-Umwandlung nutzt eSpeak NG,
 das unter GPL-3.0-or-later steht und mit ausgeliefert wird.
 
-Quelltext: https://github.com/b3002025/browserofflineai
+Quelltext: https://github.com/Gustaf998/localspeech
 
 Nachfolgend die Lizenzen von 62 Paketen, danach die zur Laufzeit
 geladenen KI-Modelle.
@@ -3121,7 +3121,7 @@ Projekt: https://github.com/Microsoft/onnxruntime.git
 (Kein Lizenztext im Paket enthalten — es gilt die oben genannte Lizenz.)
 
 ==============================================================================
-pdfjs-dist 6.1.200
+pdfjs-dist 6.3.289
 Lizenz: Apache-2.0
 Projekt: https://mozilla.github.io/pdf.js/
 ==============================================================================
@@ -3946,7 +3946,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 ==============================================================================
-tar 7.5.19
+tar 7.5.22
 Lizenz: BlueOak-1.0.0
 Urheber: Isaac Z. Schlueter
 Projekt: https://github.com/isaacs/node-tar.git

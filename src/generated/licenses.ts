@@ -294,7 +294,7 @@ export const PACKAGE_LICENSES: LicenseEntry[] = [
   },
   {
     "name": "pdfjs-dist",
-    "version": "6.1.200",
+    "version": "6.3.289",
     "license": "Apache-2.0",
     "homepage": "https://mozilla.github.io/pdf.js/"
   },
@@ -360,7 +360,7 @@ export const PACKAGE_LICENSES: LicenseEntry[] = [
   },
   {
     "name": "tar",
-    "version": "7.5.19",
+    "version": "7.5.22",
     "license": "BlueOak-1.0.0",
     "homepage": "https://github.com/isaacs/node-tar"
   },

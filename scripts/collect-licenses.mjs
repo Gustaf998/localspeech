@@ -143,7 +143,7 @@ LocalSpeech selbst steht unter der GNU General Public License v3.0 oder spaeter
 (siehe LICENSE im Quelltext). Grund: Die Aussprache-Umwandlung nutzt eSpeak NG,
 das unter GPL-3.0-or-later steht und mit ausgeliefert wird.
 
-Quelltext: https://github.com/b3002025/browserofflineai
+Quelltext: https://github.com/Gustaf998/localspeech
 
 Nachfolgend die Lizenzen von ${rows.length} Paketen, danach die zur Laufzeit
 geladenen KI-Modelle.
