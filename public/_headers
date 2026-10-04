@@ -12,15 +12,22 @@
 # Da Header pro Dokument gelten, liegen App (app.html) und Startseite
 # (index.html, mit der Zahlung) in getrennten Dokumenten.
 # Gegenstueck fuer die lokale Entwicklung: isolationForAppPage() in vite.config.ts.
+#
+# Referrer-Policy: huggingface.co lehnt Abrufe ab (404 ohne CORS-Header), wenn
+# der Referer die workers.dev-Origin enthaelt. Mit no-referrer klappt der
+# Download. Gilt fuer App UND /assets/* (Worker folgen der Policy ihres
+# eigenen Skripts). Die Startseite bleibt unveraendert (Stripe).
 
 /app.html
   Cross-Origin-Opener-Policy: same-origin
   Cross-Origin-Embedder-Policy: credentialless
+  Referrer-Policy: no-referrer
 
 # Cloudflare Pages liefert app.html auch unter /app aus (Endung optional).
 /app
   Cross-Origin-Opener-Policy: same-origin
   Cross-Origin-Embedder-Policy: credentialless
+  Referrer-Policy: no-referrer
 
 # Assets brauchen die Header ZWINGEND mit — hier liegen die Worker
 # (stt.worker, tts.worker, phoneme.worker, translate.worker) und die
@@ -33,3 +40,4 @@
   Cache-Control: public, max-age=31536000, immutable
   Cross-Origin-Opener-Policy: same-origin
   Cross-Origin-Embedder-Policy: credentialless
+  Referrer-Policy: no-referrer
