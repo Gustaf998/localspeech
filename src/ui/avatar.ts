@@ -33,6 +33,7 @@ export interface Portrait {
   browAngle?: number; // Grad; negativ = streng
   unibrow?: boolean;
   kohl?: boolean; // Kajal-Lidstrich (Kleopatra)
+  eyepatch?: 'left' | 'right'; // Augenklappe (Odin); Seite aus Sicht des Betrachters
   lipColor?: string;
   lipFull?: number; // Lippenfuelle 0..1
   smile?: number; // Grundlaecheln 0..1
@@ -128,10 +129,7 @@ function hairSVG(p: Portrait): { back: string; front: string } {
   const dark = shade(c, -0.22);
   const lite = shade(c, 0.12);
   switch (p.hair.style) {
-    case 'wild': // Einstein: hohe freie Stirn, weisse Maehne steht seitlich/oben ab
-      // back = grosse wolkige Masse, die ueber den Ohren weit ausschert und
-      // ueber dem Scheitel aufsteigt; front = nur hoher, wispy Haaransatz auf
-      // der Schaedeldecke + Schlaefenansatz — die Stirn bleibt frei.
+    case 'wild': 
       return {
         back: `<path fill="${c}" d="M 62 118
                  C 50 116 42 108 45 98
@@ -286,7 +284,7 @@ function mustacheSVG(p: Portrait): string {
   if (!p.facial) return '';
   const c = p.facial.color;
   switch (p.facial.style) {
-    case 'walrus': // Einstein: dicht, haengend, Mitte frei fuer den Mund
+    case 'walrus': 
       return `<path fill="${c}" d="M 100 106 C 90 104 82 106 78 112 C 74 118 76 124 80 126 C 84 128 90 126 94 121 Q 97 117 100 117 Q 103 117 106 121 C 110 126 116 128 120 126 C 124 124 126 118 122 112 C 118 106 110 104 100 106 Z"/>`;
     case 'mustache': // schmal-markant (Tesla, Dumont)
       return `<path fill="${c}" d="M 100 108.5 C 93 106.5 87 108 84.5 111.5 C 88 114 94 114.5 98 112 Q 100 110.8 102 112 C 106 114.5 112 114 115.5 111.5 C 113 108 107 106.5 100 108.5 Z"/>`;
@@ -486,6 +484,37 @@ function glassesSVG(p: Portrait): string {
   </g>`;
 }
 
+// Augenklappe (Odin): schwarze Lederklappe ueber einem Auge, ein Riemen
+// schraeg ueber die Stirn zur Gegenseite, ein kurzer Riemen zur Schlaefe.
+// Liegt VOR Auge, Lid und Brauen — das verdeckte Auge (Pupille, Blinzeln)
+// laeuft im Rig unsichtbar weiter, das offene Auge animiert normal.
+// Wird nach dem vorderen Haar gezeichnet, damit der Riemen auf dem Haar liegt.
+function eyepatchSVG(p: Portrait): string {
+  if (!p.eyepatch) return '';
+  const sx = p.eyepatch === 'left' ? -1 : 1; // -1 = links im Bild
+  const hw = 33 * (p.faceW ?? 1);
+  const cx = 100 + 14 * sx;
+  const cy = 85;
+  const strap = '#17151a';
+  const edge = shade(strap, 0.35);
+  const rot = (-14 * sx).toFixed(1);
+  return `<g class="av-eyepatch">
+    <path fill="none" stroke="${strap}" stroke-width="2.4" stroke-linecap="round"
+      d="M ${cx + 7 * sx} 83 C ${cx + 14 * sx} 80, ${100 + (hw - 1) * sx} 79, ${100 + (hw + 0.5) * sx} 82
+         M ${cx - 6 * sx} 78.5 C ${100 - 6 * sx} 72, ${100 - (hw - 8) * sx} 64, ${100 - (hw + 0.5) * sx} 62"/>
+    <path fill="none" stroke="${edge}" stroke-width="0.7" opacity="0.4" stroke-linecap="round"
+      d="M ${cx - 6 * sx} 77.4 C ${100 - 6 * sx} 71, ${100 - (hw - 8) * sx} 63, ${100 - (hw + 0.5) * sx} 61"/>
+    <g transform="rotate(${rot} ${cx} ${cy})">
+      <path fill="${strap}" stroke="${edge}" stroke-width="0.9" stroke-opacity="0.55"
+        d="M ${cx - 9.2} ${cy - 1} C ${cx - 9.6} ${cy - 7.4}, ${cx - 3.6} ${cy - 9.2}, ${cx} ${cy - 9.2} C ${cx + 3.6} ${cy - 9.2}, ${cx + 9.6} ${cy - 7.4}, ${cx + 9.2} ${cy - 1} C ${cx + 9.6} ${cy + 6.4}, ${cx + 4} ${cy + 9}, ${cx} ${cy + 9} C ${cx - 4} ${cy + 9}, ${cx - 9.6} ${cy + 6.4}, ${cx - 9.2} ${cy - 1} Z"/>
+      <path fill="none" stroke="rgba(255,255,255,0.16)" stroke-width="1.1" stroke-linecap="round"
+        d="M ${cx - 5.6} ${cy - 5.2} C ${cx - 2.6} ${cy - 7.2}, ${cx + 2.6} ${cy - 7.2}, ${cx + 5.6} ${cy - 5.2}"/>
+      <circle cx="${cx - 7.2}" cy="${cy - 1}" r="0.9" fill="${edge}" opacity="0.7"/>
+      <circle cx="${cx + 7.2}" cy="${cy - 1}" r="0.9" fill="${edge}" opacity="0.7"/>
+    </g>
+  </g>`;
+}
+
 // --------------------------------------------------------------- SVG-Aufbau
 
 let uid = 0;
@@ -580,6 +609,7 @@ function buildSVG(p: Portrait, prefix: string): string {
       ${glassesSVG(p)}
       ${jew.head}
       ${hair.front ? `<g class="av-hairfront">${hair.front}</g>` : ''}
+      ${eyepatchSVG(p)}
       ${headwearSVG(p)}
     </g>
     <ellipse cx="66" cy="46" rx="70" ry="52" fill="#ffffff" opacity="0.05"/>

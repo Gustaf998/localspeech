@@ -88,7 +88,7 @@ export class LLMEngine {
       // verwirft beim Context-Shift die aeltesten Tokens zuerst — und das ist
       // der System-Prompt mit der Persona. Danach kennt das Modell nur noch den
       // sichtbaren Dialog und vertauscht die Rollen ("haelt den Nutzer fuer
-      // Einstein"). Ein n_keep, das den System-Prompt schuetzen wuerde, laesst
+      // Leonardo"). Ein n_keep, das den System-Prompt schuetzen wuerde, laesst
       // sich nicht setzen: wllama exportiert keine tokenize()-API, die Laenge
       // ist also nicht bestimmbar. Stattdessen budgetiert buildMessages()
       // (app.ts) den Prompt selbst, sodass n_ctx gar nicht erst gesprengt wird.

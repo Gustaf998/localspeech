@@ -353,9 +353,7 @@ function characterSheet(p: Persona, tight: boolean): string[] {
 // wenn das Modell die Rollen bereits vertauscht hat (oder der System-Prompt
 // beim Context-Shift verloren ging) — dieser Anker steht in jedem Zug frisch
 // direkt an der Frage.
-//
-// Adressiert beide beobachteten Fehler auf einmal: die Charakteruebertragung
-// ("die KI haelt den Nutzer fuer Einstein") und die wiederholte Frage.
+
 export function buildTurnAnchor(s: Settings): string {
   const target = targetLangById(s.targetLang);
   const name = tutorNameFor(s);
@@ -440,7 +438,7 @@ function buildPersonaPrompt(s: Settings, persona: Persona): string {
     `- The learner is at level ${level.id}. ${level.instruction}`,
     '- Never correct or grade their language — a separate tutor does that. Stay in character and keep the conversation going.',
     ...TURN_RULES,
-    // Personas mit realer nicht-englischer Muttersprache (Einstein: Deutsch)
+    // Personas mit realer nicht-englischer Muttersprache 
     // starten sonst aus dem Trainingsmaterial heraus gern mit einem Gruss in
     // dieser Sprache — deshalb hier namentlich adressiert.
     languageRule(
@@ -547,8 +545,8 @@ function buildBasePrompt(s: Settings): string {
 // Versteckte erste Nachricht, die die Begruessung der KI ausloest (app.ts:
 // launchConversation). WICHTIG: sie liegt in der USER-Rolle. Deshalb darf hier
 // kein Personenname mehr stehen — vorher hiess es "fully in character as
-// Albert", also eine Regieanweisung mit Namen im Nutzerzug, und kleine Modelle
-// spiegeln so etwas ("die KI haelt den Nutzer fuer Einstein"). Wer die Rolle
+// Leonardo", also eine Regieanweisung mit Namen im Nutzerzug, und kleine Modelle
+// spiegeln so etwas ("die KI haelt den Nutzer fuer Leonardo"). Wer die Rolle
 // ist, steht im System-Prompt und im Turn-Anker; hier steht nur noch, WAS zu
 // tun ist.
 //
