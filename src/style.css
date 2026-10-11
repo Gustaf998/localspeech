@@ -1307,6 +1307,12 @@ select option {
   pointer-events: none;
 }
 .talk-dock > * { pointer-events: auto; }
+.ai-disclosure {
+  color: var(--muted);
+  font-size: 0.75rem;
+  line-height: 1.3;
+  text-align: center;
+}
 
 /* Buehne der grossen Kugel: erscheint erst, wenn sie aus der Mini-Kugel
    der Composer-Leiste herausgeploppt ist */
@@ -3286,4 +3292,3 @@ label.set-row { cursor: pointer; }
   text-underline-offset: 3px;
 }
 .link-btn:hover { color: var(--text); }
-
