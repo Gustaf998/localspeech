@@ -104,7 +104,7 @@ export const PERSONAS: Persona[] = [
     years: '1452–1519',
     langs: ['it', 'fr', 'en'],
     native: 'it',
-    voices: { it: 'im_nicola', fr: 'im_nicola', en: 'am_michael' },
+    voices: { it: 'im_nicola', fr: 'im_nicola', en: 'am_fenrir' },
     tagline: {
       de: 'Maler, Erfinder, Universalgenie',
       en: 'Painter, inventor, universal genius',
@@ -170,6 +170,7 @@ export const PERSONAS: Persona[] = [
     id: 'zeus',
     name: 'Zeus',
     short: 'Zeus',
+    years: '',  // Mythos, keine Lebensdaten
     langs: ['en', 'it'],
     native: 'en',
     voices: { en: 'am_michael', it: 'im_nicola' },
@@ -239,9 +240,10 @@ export const PERSONAS: Persona[] = [
     id: 'odin',
     name: 'Odin',
     short: 'Odin',
+    years: '', // Mythos, keine Lebensdaten
     langs: ['en'],
     native: 'en',
-    voices: { en: 'am_fenrir' },
+    voices: { en: 'am_onyx' },
     tagline: {
       de: 'Allvater der nordischen Sagen',
       en: 'Allfather of the Norse sagas',
@@ -377,7 +379,7 @@ export const PERSONAS: Persona[] = [
     bc: true,
     langs: ['en', 'it'],
     native: 'en',
-    voices: { en: 'bm_george', it: 'im_nicola' },
+    voices: { en: 'am_echo', it: 'im_nicola' },
     tagline: {
       de: 'Philosoph · „Ich weiß, dass ich nichts weiß“',
       en: 'Philosopher · “I know that I know nothing”',
