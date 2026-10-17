@@ -46,7 +46,7 @@ export class Recorder {
   // wirklich frei (Stummschalten/Verlassen).
   async warm(): Promise<void> {
     if (this.stream && this.analyserCtx) {
-      if (this.analyserCtx.state === 'suspended') await this.analyserCtx.resume();
+      await this.ensureRunning(this.analyserCtx);
       return;
     }
     if (this.warming) return this.warming; // schon am Hochfahren -> nicht doppelt
@@ -73,6 +73,7 @@ export class Recorder {
       this.stream = stream;
       this.analyserCtx = ctx;
       this.analyser = analyser;
+      void this.ensureRunning(ctx);
       // 'ended' feuert laut Spec nur, wenn die Quelle selbst wegfaellt — nicht
       // durch unseren eigenen track.stop() in cancel(). Damit ist jeder Aufruf
       // hier ein echter, unerwarteter Mikrofon-Verlust.
@@ -85,6 +86,22 @@ export class Recorder {
     } finally {
       this.warming = null;
     }
+  }
+
+  // Safari/iOS: resume() ausserhalb einer Nutzer-Geste kann ewig haengen —
+  // darum nie unbegrenzt darauf warten, sonst blockiert es warm()/start().
+  private async ensureRunning(ctx: AudioContext): Promise<void> {
+    if (ctx.state === 'running') return;
+    await Promise.race([
+      ctx.resume().catch(() => {}),
+      new Promise<void>((resolve) => setTimeout(resolve, 400)),
+    ]);
+  }
+
+  // Von app.ts bei jeder Beruehrung aufgerufen: entsperrt einen suspendierten
+  // AudioContext (iOS liefert sonst nur Stille, das VAD hoert nie Sprache).
+  resumeIfNeeded(): void {
+    if (this.analyserCtx) void this.ensureRunning(this.analyserCtx);
   }
 
   async start(cb: RecorderCallbacks): Promise<void> {

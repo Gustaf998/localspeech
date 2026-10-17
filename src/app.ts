@@ -2,6 +2,7 @@
 // Gespraechsschleife (Aufnahme -> Whisper -> LLM-Stream -> Kokoro-TTS).
 // Wird von main.ts lazy geladen, sobald der Nutzer die App oeffnet.
 
+
 import {
   loadSettings,
   saveSettings,
@@ -33,7 +34,7 @@ import {
   type UILang,
 } from './languages';
 import { t, tList, setUILang, applyI18n } from './i18n';
-import { detectHardware, describeHardware, llmOptionsForTier, tierLabel, isWeakDevice, type HardwareInfo } from './hardware';
+import { detectHardware, describeHardware, llmOptionsForTier, tierLabel, isWeakDevice, isMobileDevice, isIOS, type HardwareInfo } from './hardware';
 import {
   SCENARIOS,
   LEVELS,
@@ -776,7 +777,10 @@ function onVoiceButton() {
 // anfangs, startet er spaetestens bei der ersten Nutzer-Geste (siehe player).
 function onModelsReady() {
   showOrb();
-  if (!conversationStarted) startConversation();
+  // iOS: ohne Nutzer-Geste bleiben Ton und AudioContext gesperrt. Dann wartet
+  // die Kugel auf den ersten Tipp (onOrbClick startet das Gespräch).
+  const gestureOk = !isIOS() || (navigator.userActivation?.isActive ?? false);
+  if (!conversationStarted && gestureOk) startConversation();
 }
 
 // ---------------------------------------------------------------- Chat-UI
@@ -1192,7 +1196,7 @@ async function onShadowClick(msgEl: HTMLElement, text: string, btn: HTMLButtonEl
 // Download — daher nicht Teil des Pflicht-Setups). Idempotent: mehrfaches
 // Aufrufen teilt sich denselben Ladevorgang.
 function ensurePhonemeReady(onProgress: (pct: number) => void): Promise<void> {
-  const device: 'webgpu' | 'wasm' = hw?.webgpu ? 'webgpu' : 'wasm';
+  const device: 'webgpu' | 'wasm' = hw?.webgpu && hw.f16 ? 'webgpu' : 'wasm';
   return phoneme.ensure(PHONEME_MODEL_ID, device, (p) => onProgress(p.pct));
 }
 
@@ -2156,11 +2160,17 @@ async function loadAllModels(sinks: ProgressSinks): Promise<void> {
   if (!llmOpt) throw new Error('Kein Modell gewaehlt');
   const sttDevice: 'webgpu' | 'wasm' = hw.webgpu ? 'webgpu' : 'wasm';
 
-  await Promise.all([
-    llm.load(llmOpt, (p) => sinks.llm(p.pct, p.text), hw.webgpu),
-    stt.load(settings.sttModel, sttDevice, target().whisper, (p) => sinks.stt(p.pct)),
-    tts.load(hw.webgpu, currentVoice(), ttsLang(), (p) => sinks.tts(p.pct)),
-  ]);
+    const jobs: (() => Promise<unknown>)[] = [
+    () => llm.load(llmOpt, (p) => sinks.llm(p.pct, p.text), hw!.webgpu),
+    () => stt.load(settings.sttModel, sttDevice, target().whisper, (p) => sinks.stt(p.pct)),
+    () => tts.load(hw!.webgpu, currentVoice(), ttsLang(), (p) => sinks.tts(p.pct)),
+  ];
+  // Mobil: nacheinander laden, sonst sprengen drei parallele Downloads das Tab-Limit.
+  if (isMobileDevice() || isIOS()) {
+    for (const job of jobs) await job();
+  } else {
+    await Promise.all(jobs.map((job) => job()));
+  }
 
   void requestPersistentStorage();
   modelsReady = true;
@@ -2773,6 +2783,8 @@ function wireEvents() {
   orbEl().addEventListener('pointerup', onOrbPointerUp);
   orbEl().addEventListener('pointercancel', onOrbPointerUp);
   $('#btn-orb-mini').addEventListener('click', toggleOrb);
+    // iOS/Safari: ein suspendierter AudioContext liefert nur Stille. Jede Berührung entsperrt ihn.
+  document.addEventListener('pointerdown', () => recorder.resumeIfNeeded(), { passive: true });
 
   // Esc verlaesst den Sprech-only-Modus; bei Groessenaenderung neu zentrieren.
   window.addEventListener('keydown', (e) => {

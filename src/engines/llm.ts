@@ -106,21 +106,68 @@ export class LLMEngine {
       },
     } as const;
 
-    let wllama = createWllama();
-    try {
-      await wllama.loadModelFromUrl(opt.url, loadParams);
-    } catch (err) {
-      if (err instanceof WllamaAbortError) throw err;
-      // Selbstheilung: Ein frueher abgebrochener Download hinterlaesst eine
-      // unvollstaendige Datei ohne Metadaten in OPFS. wllama haelt sie dann
-      // fuer bereits geladen und scheitert dauerhaft (z. B. "Model file not
-      // found"). Kaputte Cache-Eintraege der URL entfernen und einmal frisch
-      // herunterladen.
-      await wllama.exit().catch(() => {});
-      await LLMEngine.purgeCacheEntries(opt.url).catch(() => {});
-      wllama = createWllama();
-      await wllama.loadModelFromUrl(opt.url, loadParams);
+    // Fallback-Leiter: llama.cpp schaltet Flash Attention beim Context-Aufbau
+    // selbst wieder ab, wenn Backend/Modell es nicht kann (z. B. WebGPU auf
+    // Apple Silicon). Ein quantisierter V-Cache verlangt aber Flash Attention
+    // -> "quantized V cache was requested, but this requires Flash Attention".
+    // Darum nacheinander: (1) FA + q8-Cache, (2) ohne FA + f16-Cache,
+    // (3) reine CPU. Die zuletzt funktionierende Stufe wird pro Modell gemerkt.
+    type LoadCfg = NonNullable<Parameters<Wllama['loadModelFromUrl']>[1]>;
+    const useGpu = gpu && !forceCpu;
+    const attempts: LoadCfg[] = [
+      loadParams,
+      { ...loadParams, flash_attn: false, cache_type_k: 'f16', cache_type_v: 'f16' },
+    ];
+    if (useGpu) {
+      attempts.push({
+        ...loadParams,
+        n_gpu_layers: 0,
+        flash_attn: false,
+        cache_type_k: 'f16',
+        cache_type_v: 'f16',
+      });
     }
+
+    const cfgKey = 'ls.llmcfg.' + opt.id + (useGpu ? '.gpu' : '.cpu');
+    let start = 0;
+    try {
+      start = Math.min(attempts.length - 1, Math.max(0, Number(localStorage.getItem(cfgKey)) || 0));
+    } catch {
+      /* Storage nicht verfuegbar */
+    }
+
+    let wllama!: Wllama;
+    let lastErr: unknown = null;
+    for (let i = start; i < attempts.length; i++) {
+      wllama = createWllama();
+      try {
+        await wllama.loadModelFromUrl(opt.url, attempts[i]);
+        lastErr = null;
+        console.info('[llm] geladen mit Konfiguration ' + (i + 1) + '/' + attempts.length);
+        try {
+          if (i > 0) localStorage.setItem(cfgKey, String(i));
+          else localStorage.removeItem(cfgKey);
+        } catch {
+          /* egal */
+        }
+        break;
+      } catch (err) {
+        if (err instanceof WllamaAbortError) throw err;
+        lastErr = err;
+        console.warn('[llm] Konfiguration ' + (i + 1) + '/' + attempts.length + ' fehlgeschlagen:', err);
+        await wllama.exit().catch(() => {});
+        const msg = String((err as { message?: string } | null)?.message ?? err);
+        // Netzwerkfehler: weitere Stufen helfen nicht, nur Zeit verlieren.
+        if (/failed to fetch|networkerror|http \d{3}/i.test(msg)) throw err;
+        // Selbstheilung: Ein frueher abgebrochener Download hinterlaesst eine
+        // unvollstaendige Datei ohne Metadaten in OPFS. Kaputte Eintraege der
+        // URL entfernen, die naechste Stufe laedt dann frisch.
+        if (/not found|corrupt|invalid|magic|truncat|metadata/i.test(msg)) {
+          await LLMEngine.purgeCacheEntries(opt.url).catch(() => {});
+        }
+      }
+    }
+    if (lastErr) throw lastErr;
     this.wllama = wllama;
     this.currentModel = opt.id;
     onProgress({ pct: 100, text: '' });

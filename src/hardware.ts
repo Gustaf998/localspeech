@@ -24,6 +24,16 @@ export function isMobileDevice(): boolean {
   return /Android|iPhone|iPod|Mobile|Windows Phone/i.test(navigator.userAgent);
 }
 
+// iPadOS meldet sich als "Macintosh" (Desktop-UA) -> ueber Touchpunkte erkennen.
+export function isIOS(): boolean {
+  const ua = navigator.userAgent;
+  return /iPhone|iPod|iPad/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+}
+
+function isIPhone(): boolean {
+  return /iPhone|iPod/.test(navigator.userAgent);
+}
+
 // Smartphone ODER schwache Hardware (Leistungsklasse "light" ohne WebGPU) —
 // beides rechtfertigt die Empfehlung, LocalSpeech auf einem staerkeren
 // Laptop/PC/Tablet zu nutzen.
@@ -62,7 +72,8 @@ export async function detectHardware(): Promise<HardwareInfo> {
 
   let tier: Tier = 'light';
   if (webgpu) {
-    const mem = deviceMemoryGB ?? 8; // Chrome deckelt deviceMemory bei 8
+    // Safari/Firefox kennen deviceMemory nicht -> auf Mobilgeraeten vorsichtig 4 annehmen.
+    const mem = deviceMemoryGB ?? (isMobileDevice() || isIOS() ? 4 : 8); // Chrome deckelt deviceMemory bei 8
     if (maxBufferGB >= 3.5 && mem >= 8) tier = 'strong';
     else if (maxBufferGB >= 1.8 && mem >= 4) tier = 'balanced';
   } else if (cores >= 8 && (deviceMemoryGB ?? 8) >= 8) {
@@ -70,6 +81,9 @@ export async function detectHardware(): Promise<HardwareInfo> {
     // ist das mittlere Modell noch benutzbar (~4-8 Token/s).
     tier = 'balanced';
   }
+  // Mobil: RAM-Limits pro Tab sind deutlich strenger als der Adapter vermuten laesst.
+  if (isIPhone()) tier = 'light';
+  else if ((isMobileDevice() || isIOS()) && tier === 'strong') tier = 'balanced';
   const cpuOnly = !webgpu;
 
   // strong-Geraete (GPU mit >=3.5-GiB-Puffern) tragen das 4B (Q3_K_S, s.
@@ -84,6 +98,18 @@ export async function detectHardware(): Promise<HardwareInfo> {
   const recommendedStt =
     tier === 'light' ? 'onnx-community/whisper-tiny' : 'onnx-community/whisper-small';
 
+  console.info('[hw]', {
+    webgpu,
+    f16,
+    vendor,
+    maxBufferGB,
+    deviceMemoryGB,
+    cores,
+    tier,
+    recommendedLLM,
+    crossOriginIsolated: self.crossOriginIsolated,
+    ios: isIOS(),
+  });
   return { webgpu, f16, vendor, maxBufferGB, deviceMemoryGB, cores, tier, cpuOnly, recommendedLLM, recommendedStt };
 }
 
