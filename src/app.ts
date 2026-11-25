@@ -1882,9 +1882,13 @@ async function loadAllModels(sinks: ProgressSinks): Promise<void> {
   const llmOpt = settings.llmModel ? llmOptionForId(settings.llmModel) : null;
   if (!llmOpt) throw new Error('Kein Modell gewaehlt');
   const sttDevice: 'webgpu' | 'wasm' = hw.webgpu && !hw.lightMode ? 'webgpu' : 'wasm';
+  // llama.cpp WebGPU kann auf manchen Mobil-GPUs Qwen2-Architekturmodelle
+  // mit fehlerhaften Tokens ausgeben. Qwen2.5-0.5B bleibt dort auf CPU/WASM;
+  // groessere Qwen3.5-Modelle und Qwen2.5 auf Desktop nutzen weiter WebGPU.
+  const llmGpu = hw.webgpu && !(llmOpt.id === 'qwen25-0.5b' && (isMobileDevice() || isIOS()));
 
-    const jobs: (() => Promise<unknown>)[] = [
-    () => llm.load(llmOpt, (p) => sinks.llm(p.pct, p.text), hw!.webgpu),
+  const jobs: (() => Promise<unknown>)[] = [
+    () => llm.load(llmOpt, (p) => sinks.llm(p.pct, p.text), llmGpu),
     () => stt.load(settings.sttModel, sttDevice, target().whisper, (p) => sinks.stt(p.pct)),
   ];
   if (!hw.lightMode) jobs.push(() => tts.load(hw!.webgpu, currentVoice(), ttsLang(), (p) => sinks.tts(p.pct)));
