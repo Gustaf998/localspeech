@@ -106,8 +106,11 @@ export async function detectHardware(): Promise<HardwareInfo> {
         ? 'qwen35-2b'
         : 'qwen35-0.8b';
 
+  // Tiny ist auf Handy-Mikrofonen besonders fehleranfaellig. Base kostet nur
+  // rund 50 MB mehr und verbessert die Erkennung bei weiterhin moderatem
+  // WASM-Aufwand; starke Geraete nutzen Whisper Small.
   const recommendedStt =
-    tier === 'light' ? 'onnx-community/whisper-tiny' : 'onnx-community/whisper-small';
+    tier === 'light' ? 'onnx-community/whisper-base' : 'onnx-community/whisper-small';
 
   // Auch WebGPU-Geräte können wenig RAM haben. Bei unklarer RAM-Angabe setzen
   // wir das Profil anhand von CPU-Kernen und Formfaktor konservativ herab.

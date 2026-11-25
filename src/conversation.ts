@@ -511,6 +511,7 @@ function buildCompactPrompt(s: Settings): string {
     identity,
     ...context,
     `The learner is practising ${target.english} at ${level.id} level. Use simple, natural spoken ${target.english}.`,
+    'This is an ongoing conversation. Do not greet, introduce yourself, or restart the topic again after the first reply.',
     'Keep each reply to 1–2 short sentences. Respond to what the learner said, then ask one relevant question.',
     'Be warm and stay in character. Do not correct or grade the learner. Do not repeat questions or invent personal facts.',
     `Use ${target.english} only. Never switch languages.`,

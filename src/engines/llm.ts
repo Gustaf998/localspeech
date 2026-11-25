@@ -30,6 +30,7 @@ export interface LLMChatOpts {
   topK?: number;
   topP?: number;
   presencePenalty?: number;
+  repeatPenalty?: number;
 }
 
 // Debug-Notausstieg: ?cpu=1 erzwingt reine CPU-Inferenz (WebGPU umgehen).
@@ -223,7 +224,8 @@ export class LLMEngine {
         temperature: opts?.temperature ?? 0.7,
         top_p: opts?.topP ?? 0.8,
         top_k: opts?.topK ?? 20,
-        penalty_present: opts?.presencePenalty ?? 0.5,
+        penalty_present: opts?.presencePenalty ?? (opts?.repeatPenalty !== undefined ? 0 : 0.5),
+        penalty_repeat: opts?.repeatPenalty,
         max_tokens: opts?.maxTokens ?? 220,
         abortSignal: abort.signal,
       });

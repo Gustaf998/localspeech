@@ -21,7 +21,7 @@ export interface LLMOption {
   // dass die Gespraechsqualitaet von Sitzung zu Sitzung ausgewuerfelt wirkte.
   // Jetzt hat JEDES Modell einen expliziten Eintrag; die Defaults in llm.ts
   // sind nur noch das Netz fuer Modelle ohne Katalogeintrag.
-  sampling?: { temperature?: number; topP?: number; topK?: number; presencePenalty?: number };
+  sampling?: { temperature?: number; topP?: number; topK?: number; presencePenalty?: number; repeatPenalty?: number };
   // Anzahl History-Nachrichten in buildMessages() (app.ts); Default 16, falls
   // nicht gesetzt. Kleineres Kontextfenster + langer System-Prompt lassen
   // weniger Luft — kleinerer Wert senkt das Risiko, dass ctx_shift mitten im
@@ -46,9 +46,11 @@ export const LLM_OPTIONS: LLMOption[] = [
     dlSizeMB: 491,
     tier: 'light',
     descKey: 'llm.qwen25_05',
-    nCtx: 2048,
-    sampling: { temperature: 0.7, topP: 0.8, topK: 20, presencePenalty: 0.2 },
-    historyTurns: 6,
+    nCtx: 4096,
+    // Qwen2.5 Instruct generation_config: temperature 0.7, top_p 0.8,
+    // top_k 20, repetition_penalty 1.1.
+    sampling: { temperature: 0.7, topP: 0.8, topK: 20, repeatPenalty: 1.1 },
+    historyTurns: 12,
   },
   {
     id: 'qwen35-0.8b',
