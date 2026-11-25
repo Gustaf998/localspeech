@@ -35,9 +35,6 @@ export interface Settings {
   // Zuletzt gespeicherter eigener Charakter (bleibt erhalten, auch wenn er
   // gerade nicht aktiv ist).
   customPersona: CustomPersona | null;
-  // Vom Nutzer hochgeladene Datei als Gespraechs-Kontext (Text). Wird in den
-  // System-Prompt eingebettet, damit die KI darueber sprechen kann.
-  contextDoc: { name: string; text: string } | null;
   llmModel: string | null;
   sttModel: string;
   voice: string;
@@ -81,7 +78,6 @@ export const DEFAULT_SETTINGS: Settings = {
   tutorName: null,
   persona: null,
   customPersona: null,
-  contextDoc: null,
   llmModel: null,
   sttModel: 'onnx-community/whisper-base',
   voice: 'af_heart',

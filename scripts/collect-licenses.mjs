@@ -29,11 +29,11 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 // aber trotzdem: NLLB verlangt die Namensnennung ausdruecklich, und bei den
 // uebrigen ist sie fair. Lizenzen von Hand geprueft (huggingface.co/api/models).
 const MODELS = [
+  { name: 'Qwen2.5-0.5B-Instruct (Q4_K_M GGUF)', license: 'Apache-2.0', url: 'https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF' },
   { name: 'Qwen3.5 (0.8B / 2B / 4B, GGUF via unsloth)', license: 'Apache-2.0', url: 'https://huggingface.co/Qwen' },
   { name: 'IBM Granite 4.1 3B (GGUF via unsloth)', license: 'Apache-2.0', url: 'https://huggingface.co/ibm-granite' },
   { name: 'OpenAI Whisper (tiny / base / small, ONNX)', license: 'Apache-2.0', url: 'https://huggingface.co/openai/whisper-base' },
   { name: 'Kokoro-82M v1.0 (ONNX)', license: 'Apache-2.0', url: 'https://huggingface.co/hexgrad/Kokoro-82M' },
-  { name: 'wav2vec2-lv-60-espeak-cv-ft (ONNX)', license: 'Apache-2.0', url: 'https://huggingface.co/facebook/wav2vec2-lv-60-espeak-cv-ft' },
   // NLLB-200 ist das einzige Modell, dessen Lizenz die Namensnennung
   // ausdruecklich VERLANGT (CC-BY) — und das einzige mit einer Einschraenkung
   // auf nicht-kommerzielle Nutzung (NC). Es darf hier also unter keinen
@@ -140,7 +140,7 @@ Erzeugt am ${new Date().toISOString().slice(0, 10)} durch scripts/collect-licens
 NICHT VON HAND BEARBEITEN — bei Aenderungen "npm run licenses" ausfuehren.
 
 LocalSpeech selbst steht unter der GNU General Public License v3.0 oder spaeter
-(siehe LICENSE im Quelltext). Grund: Die Aussprache-Umwandlung nutzt eSpeak NG,
+(siehe LICENSE im Quelltext). Grund: Die Sprachausgabe nutzt eSpeak NG,
 das unter GPL-3.0-or-later steht und mit ausgeliefert wird.
 
 Quelltext: https://github.com/Gustaf998/localspeech

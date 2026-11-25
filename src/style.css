@@ -980,21 +980,6 @@ select option {
   box-shadow: 0 8px 26px rgba(0, 0, 0, 0.35);
 }
 .msg-text { white-space: pre-wrap; }
-/* Datei-Chip ueber dem Text, wenn der Nachricht ein Dokument beiliegt. */
-.msg-doc {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  max-width: 100%;
-  margin-bottom: 0.55rem;
-  padding: 0.3rem 0.65rem;
-  border-radius: 999px;
-  font-size: 0.82rem;
-  background: rgba(10, 10, 10, 0.06);
-  border: 1px solid rgba(10, 10, 10, 0.12);
-}
-.msg-doc svg { width: 15px; height: 15px; flex: none; opacity: 0.7; }
-.msg-doc-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .msg-assistant { align-self: flex-start; border-bottom-left-radius: 8px; }
 .msg-user {
   background: #fff;
@@ -1175,67 +1160,6 @@ select option {
 .translate-pop .dots i:nth-child(2) { animation-delay: 0.2s; }
 .msg-translation .dots i:nth-child(3),
 .translate-pop .dots i:nth-child(3) { animation-delay: 0.4s; }
-
-/* --------------------------------------------------- Aussprache-Uebung */
-/* Nachsprechen-Knopf waehrend der Aufnahme: gleiches gruenes Mikro-Gluehen wie
-   die Kugel im "listening"-Zustand, damit die Geste sofort vertraut wirkt. */
-.msg-action.msg-shadow.recording {
-  background: var(--hl);
-  color: #0a0a0a;
-  border-color: var(--hl);
-  animation: listen-glow 1.8s ease-in-out infinite;
-}
-/* Modell laedt / Phoneme werden ausgewertet -> dezentes Warten-Pulsen. */
-.msg-action.msg-shadow.busy {
-  opacity: 0.55;
-  pointer-events: none;
-  animation: mini-pulse 1s ease-in-out infinite;
-}
-
-/* Ergebnis der Aussprache-Uebung: ruhiger Block unter der Antwort. Bewusst
-   OHNE Ampelfarben (Design: ein einziger Highlight-Akzent) — korrekt
-   ausgesprochene Woerter bleiben ruhig, die Aufmerksamkeit liegt per --hl auf
-   dem, was noch zu ueben ist. */
-.msg-shadow-result {
-  margin-top: 0.8rem;
-  padding-top: 0.7rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-/* Kopfzeile: Gesamt-Prozent + kurzer Hinweis, in der Optik der Tutor-Kopfzeile. */
-.shadow-score {
-  display: flex;
-  align-items: baseline;
-  gap: 0.55rem;
-  font-size: 0.9rem;
-  color: var(--muted);
-}
-.shadow-pct {
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: var(--hl);
-  font-variant-numeric: tabular-nums;
-}
-/* Zielsatz Wort fuer Wort. Etwas mehr Zeilenhoehe fuer die Unterstreichungen. */
-.shadow-words {
-  margin-top: 0.5rem;
-  font-size: 0.98rem;
-  line-height: 1.7;
-}
-.shadow-words .sw-ok { color: var(--text); } /* gut getroffen -> ruhig */
-/* Teils daneben: dezente gepunktete Unterstreichung im Akzent. */
-.shadow-words .sw-mid {
-  color: var(--text);
-  text-decoration: underline dotted color-mix(in srgb, var(--hl) 60%, transparent);
-  text-underline-offset: 3px;
-}
-/* Deutlich daneben: hervorgehoben wie eine Korrektur — hier hinschauen. */
-.shadow-words .sw-bad {
-  color: var(--hl);
-  background: color-mix(in srgb, var(--hl) 15%, transparent);
-  border-radius: 5px;
-  padding: 0 0.18em;
-  font-weight: 600;
-}
 
 /* Wort-Uebersetzung: schwebendes Popover ueber dem doppelt geklickten Wort. */
 .translate-pop {
@@ -1746,67 +1670,6 @@ select option {
   transform: none;
   box-shadow: none;
 }
-
-/* Datei anhaengen: dezenter runder Knopf in der Composer-Leiste */
-.attach-btn {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  border: none;
-  flex: none;
-  cursor: pointer;
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--muted);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.15s ease, background 0.2s ease, color 0.2s ease;
-}
-.attach-btn svg { width: 20px; height: 20px; }
-.attach-btn:hover { background: rgba(255, 255, 255, 0.12); color: var(--text); transform: scale(1.05); }
-.attach-btn:active { transform: scale(0.94); }
-.attach-btn.has-file { color: #fff; background: rgba(255, 255, 255, 0.16); }
-
-/* Anhang-Chip ueber der Composer-Leiste */
-.context-bar {
-  width: 100%;
-  max-width: 820px;
-  margin: 0 auto 0.5rem;
-  display: flex;
-  justify-content: flex-start;
-}
-.context-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  max-width: 100%;
-  background: linear-gradient(150deg, rgba(38, 38, 42, 0.8), rgba(16, 16, 18, 0.85));
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 0.4rem 0.5rem 0.4rem 0.8rem;
-  font-size: 0.85rem;
-  color: var(--text);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
-}
-.context-chip svg { width: 16px; height: 16px; flex: none; color: var(--muted); }
-.context-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 60vw; }
-.context-remove {
-  flex: none;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  border: none;
-  cursor: pointer;
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--muted);
-  font-size: 0.8rem;
-  line-height: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.15s, color 0.15s;
-}
-.context-remove:hover { background: rgba(255, 255, 255, 0.16); color: var(--text); }
 
 /* ------------------------------------------------------------- Overlays */
 
@@ -2372,7 +2235,8 @@ label.set-row { cursor: pointer; }
 
   /* ------------------------------------------------------------- Hero (mobil) */
   .hero { padding: 3rem 1.2rem 2.5rem; }
-  .hero-stage { min-height: calc(100svh - 5rem); padding-bottom: 5rem; }
+  .hero-stage { min-height: auto; padding-bottom: 2.5rem; }
+  .hero-stage .scroll-cue { display: none; }
   .hero-stage h1 { font-size: clamp(2.15rem, 8.4vw, 3rem); }
   .hero-stage .hero-sub { font-size: 1.05rem; }
   .hero-sub { margin: 1.2rem auto 1.7rem; }

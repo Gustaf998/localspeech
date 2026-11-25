@@ -346,17 +346,15 @@ function characterSheet(p: Persona, tight: boolean): string[] {
   ];
 }
 
-// Kurzer Rollen-Anker, den buildMessages (app.ts) unmittelbar VOR die juengste
-// Nutzernachricht setzt — dieselbe Mechanik wie buildDocumentPreamble weiter
-// unten und aus demselben Grund: kleine Modelle gewichten das zuletzt Gelesene
-// am staerksten. Ein System-Prompt am Anfang des Kontexts hilft nichts mehr,
-// wenn das Modell die Rollen bereits vertauscht hat (oder der System-Prompt
-// beim Context-Shift verloren ging) — dieser Anker steht in jedem Zug frisch
-// direkt an der Frage.
+// Kurzer Rollen-Anker direkt vor der juengsten Nutzernachricht. Kleine Modelle
+// gewichten das zuletzt Gelesene am staerksten.
 
 export function buildTurnAnchor(s: Settings): string {
   const target = targetLangById(s.targetLang);
   const name = tutorNameFor(s);
+  if (s.llmModel === 'qwen25-0.5b') {
+    return `You are ${name}. Reply to the learner in ${target.english}, then ask one short question.`;
+  }
   return `[You are ${name}. The message below is from the learner, not from you — never speak as if they were ${name}. React to it first, then ask one question you have not asked yet. Every word in ${target.english}.]`;
 }
 
@@ -481,37 +479,42 @@ function buildNativePrompt(s: Settings, persona: Persona): string {
   ].join('\n');
 }
 
-// Vom Nutzer hochgeladener Datei-Kontext, als Vorspann direkt VOR der aktuellen
-// Nutzernachricht (siehe buildMessages in app.ts). Kleine lokale Modelle achten
-// am staerksten auf das zuletzt Gelesene — deshalb reisst der Dokumenttext hier
-// unmittelbar an der Frage an und nicht am Ende eines langen System-Prompts, wo
-// er sonst untergeht. Leerstring, wenn keine Datei angehaengt ist.
-// maxChars: Platz, der dem Dokumenttext neben System-Prompt, Anker und etwas
-// Verlauf noch bleibt (berechnet in buildMessages, app.ts). Ohne dieses Limit
-// sprengt ein 6000-Zeichen-Dokument auf dem 0.8B (2048 Token) das Fenster —
-// und dann verwirft llama.cpps Context-Shift als Erstes den System-Prompt, also
-// genau die Persona. Lieber ein ehrlich gekuerzter Auszug als ein Modell, das
-// mitten im Gespraech vergisst, wer es ist.
-export function buildDocumentPreamble(s: Settings, maxChars = Infinity): string {
-  const doc = s.contextDoc;
-  if (!doc || !doc.text.trim()) return '';
-  const target = targetLangById(s.targetLang);
-  const full = doc.text.trim();
-  const cut = full.length > maxChars;
-  const text = cut ? full.slice(0, Math.max(0, maxChars)).trimEnd() : full;
-  if (!text) return '';
-  return [
-    `[The learner has attached a document titled "${doc.name}" to talk about with you. Keep speaking ${target.english} only. Use its content to answer their questions and reference it naturally when relevant. Do not read it out word for word or dump long quotes — talk about it like a person would.`,
-    '--- DOCUMENT START ---',
-    text,
-    cut
-      ? '--- DOCUMENT CUT OFF HERE (only the beginning fits) — if they ask about a later part, say plainly that you can only see the beginning. ---]'
-      : '--- DOCUMENT END ---]',
-  ].join('\n');
+export function buildSystemPrompt(s: Settings): string {
+  if (s.llmModel === 'qwen25-0.5b') return buildCompactPrompt(s);
+  return buildBasePrompt(s);
 }
 
-export function buildSystemPrompt(s: Settings): string {
-  return buildBasePrompt(s);
+// Qwen2.5-0.5B hat nur 2k Kontext und begrenzte Instruktionskapazitaet.
+// Diese fokussierte Variante behaelt Rolle, Lernsprache und Persona, laesst
+// aber lange Regellisten weg, die das kleine Modell eher verwirren.
+function buildCompactPrompt(s: Settings): string {
+  const target = targetLangById(s.targetLang);
+  const level = LEVELS.find((l) => l.id === s.level) ?? DEFAULT_LEVEL;
+  const persona = s.persona === 'custom' ? null : personaById(s.persona);
+  const scenario = scenarioById(s.scenario);
+  let identity: string;
+  let context: string[] = [];
+  if (s.persona === 'custom' && s.customPersona) {
+    const c = s.customPersona;
+    identity = `You are ${c.name.trim() || 'a friendly conversation partner'}${c.role.trim() ? `, ${c.role.trim()}` : ''}.`;
+    context = [c.personality.trim(), c.knowledge.trim()].filter(Boolean);
+  } else if (persona) {
+    identity = persona.kind === 'native'
+      ? `You are ${persona.name}, a native ${target.english} speaker from ${persona.home}.`
+      : `You are ${persona.name}, a character from ${persona.years}${persona.bc ? ' BC' : ''}.`;
+    context = [persona.prompt, ...persona.facts.slice(0, 2), ...persona.quirks.slice(0, 1)];
+  } else {
+    identity = `You are ${tutorNameFor(s)}, a warm, curious ${target.english} conversation partner.`;
+    context = [scenario.prompt];
+  }
+  return [
+    identity,
+    ...context,
+    `The learner is practising ${target.english} at ${level.id} level. Use simple, natural spoken ${target.english}.`,
+    'Keep each reply to 1–2 short sentences. Respond to what the learner said, then ask one relevant question.',
+    'Be warm and stay in character. Do not correct or grade the learner. Do not repeat questions or invent personal facts.',
+    `Use ${target.english} only. Never switch languages.`,
+  ].join('\n');
 }
 
 function buildBasePrompt(s: Settings): string {
@@ -555,23 +558,14 @@ function buildBasePrompt(s: Settings): string {
 // persistiert die Settings.
 export function buildKickoffPrompt(s: Settings): string {
   const target = targetLangById(s.targetLang);
-  const doc = s.contextDoc;
   const persona = s.persona === 'custom' ? null : personaById(s.persona);
   const custom = s.persona === 'custom' && s.customPersona;
   const pool = persona ? persona.openers : custom ? CUSTOM_OPENERS : scenarioById(s.scenario).openers;
   const opener = pickRandom(pool, s.lastOpener);
   s.lastOpener = opener;
-
-  // Angehaengtes Dokument schlaegt den Zufalls-Aufhaenger: wer eine Datei
-  // hochlaedt, will ueber sie sprechen und nicht ueber Lieblingsmusik.
-  const task = doc
-    ? `The learner has shared a document titled "${doc.name}" — warmly invite them to talk about it and ask exactly one question about it.`
-    : `${opener} Ask exactly one question, and make it something only you would ask — never "how are you".`;
-
+  const task = `${opener} Ask exactly one question, and make it something only you would ask — never "how are you".`;
   return `(Begin now. Greet me briefly in ${target.english}, unmistakably in your own voice, then: ${task} Two sentences maximum.)`;
 }
-
-// ---------------------------------------------------------------------------
 // Inkrementelles Satz-Splitting: waehrend das LLM streamt, werden fertige
 // Saetze sofort an die TTS uebergeben (niedrige Latenz bis zum ersten Ton).
 

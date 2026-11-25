@@ -33,11 +33,23 @@ export interface LLMOption {
 // Datei (ArrayBuffer-Limit). Groessere Modelle werden mit `llama-gguf-split`
 // in ~512-MB-Shards zerlegt; wllama laedt sie automatisch, wenn man die URL
 // der ERSTEN Shard (…-00001-of-0000N.gguf) uebergibt (Bonus: bis zu 5 Shards
-// parallel = schnellerer Download). Qwen3.5 (03/2026) deckt als kleinste
-// moderne Familie alle Lernsprachen ab (201 Sprachen) und ist der direkte
-// Nachfolger unseres bisherigen Qwen3-Lineups.
+// parallel = schnellerer Download). Qwen2.5-0.5B ist die kompakte Empfehlung
+// fuer Telefone und schwache Geraete; leistungsfaehige Rechner behalten das
+// groessere Qwen3.5-Lineup.
 // 0.8B in Q8_0: unter 1B degradiert Q4 die Sprachqualitaet zu stark.
 export const LLM_OPTIONS: LLMOption[] = [
+  {
+    id: 'qwen25-0.5b',
+    url: 'https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/qwen2.5-0.5b-instruct-q4_k_m.gguf',
+    name: 'Qwen 2.5 · 0.5B',
+    params: '0,5 Mrd.',
+    dlSizeMB: 491,
+    tier: 'light',
+    descKey: 'llm.qwen25_05',
+    nCtx: 2048,
+    sampling: { temperature: 0.7, topP: 0.8, topK: 20, presencePenalty: 0.2 },
+    historyTurns: 6,
+  },
   {
     id: 'qwen35-0.8b',
     url: 'https://huggingface.co/unsloth/Qwen3.5-0.8B-GGUF/resolve/main/Qwen3.5-0.8B-Q8_0.gguf',
@@ -143,18 +155,6 @@ export const TTS_MODEL_ID = 'onnx-community/Kokoro-82M-v1.0-ONNX';
 // q8 (WASM) vs. fp32 (WebGPU — schneller, aber groesserer Download)
 export const TTS_SIZE_MB = 95;
 export const TTS_SIZE_WEBGPU_MB = 330;
-
-// Phonem-Erkennung fuer die Aussprache-Uebung (optional, nur bei Nutzung
-// geladen). wav2vec2-CTC OHNE Sprachmodell-Prior: transkribiert die
-// tatsaechlich produzierten Laute, nicht das "wahrscheinlich gemeinte" Wort —
-// deshalb, anders als Whisper, faellt eine bewusst falsche Aussprache auch
-// wirklich auf. Trainiert auf espeak-phonemisiertem CommonVoice, gibt also
-// dasselbe IPA-Alphabet aus wie unser espeak-ng im TTS-Worker (tts.worker.ts)
-// — erwartete und gehoerte Phoneme sind direkt vergleichbar.
-export const PHONEME_MODEL_ID = 'onnx-community/wav2vec2-lv-60-espeak-cv-ft-ONNX';
-// q8 (WASM, ~318 MB) bzw. fp16 (WebGPU, ~632 MB). Grob fuer die Download-Anzeige.
-export const PHONEME_SIZE_MB = 318;
-export const PHONEME_SIZE_WEBGPU_MB = 632;
 
 // Dediziertes Uebersetzungsmodell (NLLB-200 distilled, viele-zu-viele ueber
 // FLORES-200-Sprachcodes) statt des Chat-LLM: verlaesslicher bei Genus/Kasus

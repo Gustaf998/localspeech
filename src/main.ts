@@ -133,13 +133,8 @@ function route() {
 }
 
 function initLanding() {
-  if (!(navigator as any).gpu) {
-    const note = document.getElementById('hero-support-note');
-    if (note) note.textContent = t('hero.noteNoWebgpu');
-  } else {
-    const note = document.getElementById('hero-support-note');
-    if (note) note.textContent = t('hero.note');
-  }
+  const note = document.getElementById('hero-support-note');
+  if (note) note.textContent = t((navigator as any).gpu ? 'hero.note' : 'hero.noteNoWebgpu');
   // Unterstuetzungs-Sektion (Stripe) verdrahten bzw. betragsabhaengige Texte
   // auffrischen — idempotent, Listener werden nur einmal gesetzt.
   initDonate();

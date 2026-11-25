@@ -104,13 +104,4 @@ serve({
       __transfer: [audio.buffer],
     };
   },
-
-  // Fuer die Aussprache-Uebung: die erwartete IPA-Phonemfolge je Wort. Nutzt
-  // denselben espeak-NG-Build wie die Synthese (immer espeak, auch fuers
-  // Englische) — damit stimmt das Alphabet mit dem wav2vec2-espeak-Modell
-  // ueberein. Braucht KEIN geladenes Kokoro-Modell, nur das espeak-WASM.
-  async phonemizeWords({ words, espeak }: { words: string[]; espeak: string }) {
-    const ipa = await Promise.all(words.map((w) => phonemizeEspeak(w, espeak)));
-    return { ipa };
-  },
 });

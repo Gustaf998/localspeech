@@ -41,18 +41,6 @@ export const PACKAGE_LICENSES: LicenseEntry[] = [
     "homepage": "https://github.com/npm/fs-minipass"
   },
   {
-    "name": "@napi-rs/canvas",
-    "version": "1.0.2",
-    "license": "MIT",
-    "homepage": "https://github.com/Brooooooklyn/canvas"
-  },
-  {
-    "name": "@napi-rs/canvas-win32-x64-msvc",
-    "version": "1.0.2",
-    "license": "MIT",
-    "homepage": "https://github.com/Brooooooklyn/canvas"
-  },
-  {
     "name": "@protobufjs/aspromise",
     "version": "1.1.2",
     "license": "BSD-3-Clause",
@@ -293,12 +281,6 @@ export const PACKAGE_LICENSES: LicenseEntry[] = [
     "homepage": "https://github.com/Microsoft/onnxruntime"
   },
   {
-    "name": "pdfjs-dist",
-    "version": "6.3.289",
-    "license": "Apache-2.0",
-    "homepage": "https://mozilla.github.io/pdf.js/"
-  },
-  {
     "name": "phonemizer",
     "version": "1.2.1",
     "license": "Apache-2.0",
@@ -386,6 +368,11 @@ export const PACKAGE_LICENSES: LicenseEntry[] = [
 
 export const MODEL_LICENSES: { name: string; license: string; url: string }[] = [
   {
+    "name": "Qwen2.5-0.5B-Instruct (Q4_K_M GGUF)",
+    "license": "Apache-2.0",
+    "url": "https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF"
+  },
+  {
     "name": "Qwen3.5 (0.8B / 2B / 4B, GGUF via unsloth)",
     "license": "Apache-2.0",
     "url": "https://huggingface.co/Qwen"
@@ -404,11 +391,6 @@ export const MODEL_LICENSES: { name: string; license: string; url: string }[] = 
     "name": "Kokoro-82M v1.0 (ONNX)",
     "license": "Apache-2.0",
     "url": "https://huggingface.co/hexgrad/Kokoro-82M"
-  },
-  {
-    "name": "wav2vec2-lv-60-espeak-cv-ft (ONNX)",
-    "license": "Apache-2.0",
-    "url": "https://huggingface.co/facebook/wav2vec2-lv-60-espeak-cv-ft"
   },
   {
     "name": "NLLB-200 distilled 600M (Übersetzung) — nur nicht-kommerzielle Nutzung",

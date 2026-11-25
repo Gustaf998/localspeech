@@ -24,7 +24,6 @@
     "@wllama/wllama-compat": "^3.5.1",
     "espeak-ng": "^1.0.2",
     "kokoro-js": "^1.2.1",
-    "pdfjs-dist": "^6.1.200",
     "stripe": "^22.3.2"
   },
   "devDependencies": {

@@ -72,13 +72,4 @@ export class TTSEngine {
     });
   }
 
-  // Erwartete IPA-Phonemfolge je Wort (fuer die Aussprache-Uebung).
-  async phonemizeWords(words: string[], espeak: string): Promise<string[]> {
-    if (!this.client || !this.ready) throw new Error('TTS not ready.');
-    const { ipa } = await this.client.call<{ ipa: string[] }>('phonemizeWords', {
-      words,
-      espeak,
-    });
-    return ipa;
-  }
 }

@@ -16,7 +16,6 @@ import {
   TTS_SIZE_MB,
   TTS_SIZE_WEBGPU_MB,
   TRANSLATE_MODEL_ID,
-  PHONEME_MODEL_ID,
   llmOptionForId,
   type LLMOption,
 } from './catalog';
@@ -39,7 +38,6 @@ import {
   SCENARIOS,
   LEVELS,
   buildSystemPrompt,
-  buildDocumentPreamble,
   buildTurnAnchor,
   estimateTokens,
   newConversationSeed,
@@ -53,8 +51,6 @@ import { LLMEngine } from './engines/llm';
 import { STTEngine } from './engines/stt';
 import { TTSEngine } from './engines/tts';
 import { TranslateEngine } from './engines/translate';
-import { PhonemeEngine } from './engines/phoneme';
-import { splitWords, scorePronunciation, type PronunciationResult } from './pronunciation';
 import { Recorder } from './audio/recorder';
 import { SpeechPlayer } from './audio/player';
 import { OrbGL } from './ui/orb';
@@ -125,9 +121,6 @@ const tts = new TTSEngine();
 // Chat-LLM — laedt lazy beim ersten Uebersetzungswunsch (Wort-Popover oder
 // Ganztext-Knopf), nicht Teil des Pflicht-Setups.
 const translator = new TranslateEngine();
-// Phonem-Erkennung fuer die Aussprache-Uebung — laedt lazy beim ersten
-// Shadowing-Versuch (grosser, optionaler Download), s. ensurePhonemeReady().
-const phoneme = new PhonemeEngine();
 const recorder = new Recorder();
 const player = new SpeechPlayer();
 
@@ -785,23 +778,10 @@ function onModelsReady() {
 
 // ---------------------------------------------------------------- Chat-UI
 
-function appendMessage(role: 'user' | 'assistant', text = '', docName?: string): HTMLElement {
+function appendMessage(role: 'user' | 'assistant', text = ''): HTMLElement {
   const el = document.createElement('div');
   el.className = `msg msg-${role}`;
   const host = $('#chat');
-  // Ist der Nachricht ein Dokument beigelegt, sitzt ein Datei-Chip ueber dem
-  // Text — sichtbare Bestaetigung, dass die Datei mit dieser Nachricht rausging.
-  if (docName) {
-    const chip = document.createElement('span');
-    chip.className = 'msg-doc';
-    chip.innerHTML =
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3v5h5"/><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>';
-    const name = document.createElement('span');
-    name.className = 'msg-doc-name';
-    name.textContent = docName;
-    chip.appendChild(name);
-    el.appendChild(chip);
-  }
   const textEl = document.createElement('div');
   textEl.className = 'msg-text';
   textEl.textContent = text;
@@ -819,6 +799,7 @@ function addAssistantActions(msgEl: HTMLElement, text: string) {
   actions.className = 'msg-actions';
 
   const speak = document.createElement('button');
+  speak.hidden = !!hw?.lightMode;
   speak.type = 'button';
   speak.className = 'msg-action msg-speak';
   speak.title = t('msg.speakAgain');
@@ -840,6 +821,7 @@ function addAssistantActions(msgEl: HTMLElement, text: string) {
   // Ganze Antwort uebersetzen: blendet unter der Nachricht eine Uebersetzung in
   // die Muttersprache ein (erneuter Klick blendet sie wieder aus).
   const translate = document.createElement('button');
+  translate.hidden = !!hw?.lightMode;
   translate.type = 'button';
   translate.className = 'msg-action msg-translate';
   translate.title = t('msg.translate');
@@ -852,12 +834,8 @@ function addAssistantActions(msgEl: HTMLElement, text: string) {
   translate.addEventListener('click', () => toggleMessageTranslation(msgEl, text, translate));
   actions.appendChild(translate);
 
-  // Nachsprechen-Funktion vorerst deaktiviert (Aussprache-Uebung per
-  // Phonem-Modell) — Implementierung bleibt in pronunciation.ts/phoneme.ts
-  // erhalten, nur der Einstiegspunkt (dieser Button) ist entfernt.
-
   msgEl.appendChild(actions);
-  maybeShowTranslateHint(translate);
+  if (!hw?.lightMode) maybeShowTranslateHint(translate);
 }
 
 // ------------------------------------------- Eigene Nachricht nachbessern
@@ -1139,144 +1117,6 @@ function applyCorrection(raw: string) {
   scrollChat();
 }
 
-// -------------------------------------------------- Aussprache-Uebung
-// Eine einzelne Aufnahme kann zur Zeit laufen (geteiltes Mikro mit dem
-// Hauptgespraech) — dieser Button verfolgt, welcher genau das gerade ist.
-let shadowBtn: HTMLButtonElement | null = null;
-
-function resetShadowButton(btn: HTMLButtonElement) {
-  if (shadowBtn === btn) shadowBtn = null;
-  btn.classList.remove('recording', 'busy');
-  btn.style.removeProperty('--level');
-  btn.title = t('msg.shadow');
-  btn.setAttribute('aria-label', t('msg.shadow'));
-}
-
-async function onShadowClick(msgEl: HTMLElement, text: string, btn: HTMLButtonElement) {
-  if (btn === shadowBtn) {
-    // Zweiter Klick auf denselben Knopf: Aufnahme manuell beenden.
-    void finishShadowRecording(msgEl, text, btn);
-    return;
-  }
-  if (!stt.ready || generating || recorder.recording) {
-    // Mikro dem Auto-Zuhoeren des Hauptgespraechs fuer die Uebung abnehmen,
-    // statt die Aufnahme still zu verweigern.
-    if (orbState === 'listening') {
-      await recorder.stop(); // laufende Aufnahme verwerfen, kein echter Zug
-      setOrb('idle');
-    } else if (orbState === 'thinking' || orbState === 'speaking') {
-      genAbort.aborted = true;
-      llm.interrupt();
-      cancelSpeech();
-      setGenerating(false);
-      setOrb('idle');
-    } else {
-      return; // z.B. eine andere Nachsprechen-Aufnahme laeuft schon
-    }
-  }
-  cancelSpeech();
-  msgEl.querySelector('.msg-shadow-result')?.remove();
-  shadowBtn = btn;
-  btn.classList.add('recording');
-  btn.title = t('msg.shadowStop');
-  btn.setAttribute('aria-label', t('msg.shadowStop'));
-  try {
-    await recorder.start({
-      onLevel: (rms) => btn.style.setProperty('--level', String(Math.min(1, rms * 7))),
-      onAutoStop: () => void finishShadowRecording(msgEl, text, btn),
-    });
-  } catch (err: any) {
-    resetShadowButton(btn);
-    if (err?.name === 'NotAllowedError') toast(t('toast.micDenied'), true);
-    else toast(t('toast.micErr', { err: err?.message ?? err }), true);
-  }
-}
-
-// Phonem-Modell fuer die Aussprache-Uebung lazy laden (grosser, optionaler
-// Download — daher nicht Teil des Pflicht-Setups). Idempotent: mehrfaches
-// Aufrufen teilt sich denselben Ladevorgang.
-function ensurePhonemeReady(onProgress: (pct: number) => void): Promise<void> {
-  const device: 'webgpu' | 'wasm' = hw?.webgpu && hw.f16 ? 'webgpu' : 'wasm';
-  return phoneme.ensure(PHONEME_MODEL_ID, device, (p) => onProgress(p.pct));
-}
-
-async function finishShadowRecording(msgEl: HTMLElement, text: string, btn: HTMLButtonElement) {
-  if (shadowBtn !== btn || !recorder.recording) return;
-  btn.classList.remove('recording');
-  btn.classList.add('busy');
-  btn.style.removeProperty('--level');
-
-  // Ergebnis-Block sofort einsetzen — zeigt erst (Down-)Load-Fortschritt, dann
-  // die Bewertung.
-  msgEl.querySelector('.msg-shadow-result')?.remove();
-  const block = document.createElement('div');
-  block.className = 'msg-shadow-result';
-  block.innerHTML = '<span class="dots"><i></i><i></i><i></i></span>';
-  msgEl.insertBefore(block, msgEl.querySelector('.msg-actions'));
-  scrollChat();
-
-  try {
-    const hadSpeech = recorder.hasSpeech;
-    const audio = await recorder.stop();
-    if (!hadSpeech || audio.length < 8000) {
-      block.remove(); // nichts Verwertbares aufgenommen -> still zuruecksetzen
-      resetShadowButton(btn);
-      return;
-    }
-    // Beim ersten Mal wird hier das ~300-MB-Modell geladen; Fortschritt im Block.
-    await ensurePhonemeReady((pct) => {
-      if (block.isConnected) block.textContent = t('shadow.loading', { pct: Math.round(pct) });
-    });
-    // Tatsaechlich produzierte Laute (ohne Sprachprior) …
-    const produced = await phoneme.recognize(audio);
-    // … gegen die erwarteten espeak-Phoneme je Wort des Zielsatzes.
-    const words = splitWords(text);
-    const expected = await tts.phonemizeWords(words.map((w) => w.clean), target().espeak);
-    const result = scorePronunciation(words, expected, produced);
-    resetShadowButton(btn);
-    if (!block.isConnected) return; // Block wurde zwischenzeitlich ersetzt
-    renderShadowResult(block, result);
-  } catch (err: any) {
-    block.remove();
-    resetShadowButton(btn);
-    toast(t('toast.pronFail', { err: err?.message ?? err }), true);
-  }
-}
-
-// Bewertung rendern: Kopfzeile mit Gesamt-Prozent + Lob/Hinweis, darunter der
-// Zielsatz Wort fuer Wort nach Laut-Treffer eingefaerbt (gut / teils / schlecht).
-function renderShadowResult(block: HTMLElement, result: PronunciationResult) {
-  const pct = Math.round(result.overall * 100);
-  const level = result.overall >= 0.85 ? 'great' : result.overall >= 0.6 ? 'ok' : 'low';
-  const headKey = level === 'great' ? 'shadow.great' : level === 'ok' ? 'shadow.good' : 'shadow.again';
-  const wordsHtml = result.words
-    .map((w) => {
-      if (w.score === null) return escapeHtml(w.word); // Interpunktion o. ä. — nicht bewertet
-      const cls = w.ok ? 'sw-ok' : w.score >= 0.4 ? 'sw-mid' : 'sw-bad';
-      return `<span class="${cls}">${escapeHtml(w.word)}</span>`;
-    })
-    .join(' ');
-  block.innerHTML =
-    `<div class="shadow-score shadow-${level}">` +
-    `<span class="shadow-pct">${pct}%</span><span>${escapeHtml(t(headKey))}</span></div>` +
-    `<div class="shadow-words">${wordsHtml}</div>`;
-  scrollChat();
-}
-
-// DEV-Testhaken (in PROD via import.meta.env.DEV entfernt): fuehrt die
-// Aussprache-Bewertung deterministisch mit uebergebenem Audio + Zieltext aus,
-// ohne Recorder/LLM — fuer die Browser-Verifikation mit echter Sprache.
-if (import.meta.env.DEV) {
-  (window as any).__pron = async (text: string, audio: Float32Array) => {
-    await ensurePhonemeReady(() => {});
-    const produced = await phoneme.recognize(audio);
-    const words = splitWords(text);
-    const expected = await tts.phonemizeWords(words.map((w) => w.clean), target().espeak);
-    const result = scorePronunciation(words, expected, produced);
-    return { produced, expected, result };
-  };
-}
-
 // Einmaliger, geraeteabhaengiger Hinweis auf die Wort-Uebersetzung — beim ersten
 // Mal, dass eine fertige Antwort mit Uebersetzen-Knopf erscheint. Kurz verzoegert,
 // damit er sich nicht mit dem "Alles bereit"-Toast der Begruessung ueberlagert.
@@ -1326,6 +1166,7 @@ function showGestureHint(anchorBtn: HTMLButtonElement) {
 // dasselbe Modell/dtype fehlerfrei. Uebersetzung ist nicht latenzkritisch wie
 // das Gespraech, also lohnt sich das GPU-Risiko hier nicht.
 function ensureTranslatorReady(onProgress: (pct: number) => void): Promise<void> {
+  if (hw?.lightMode) return Promise.reject(new Error('Übersetzung ist auf diesem Gerät deaktiviert.'));
   return translator.load(
     TRANSLATE_MODEL_ID,
     'wasm',
@@ -1531,7 +1372,7 @@ function onChatPointerUp(e: PointerEvent) {
 // Saetze in der bereits geleerten Queue und wurden als Anfang der naechsten
 // Antwort gesprochen — die "halb alte, halb neue" erste Nachricht.
 function enqueueSpeech(text: string, epoch = speechEpoch) {
-  if (epoch !== speechEpoch) return;
+  if (epoch !== speechEpoch || hw?.lightMode) return;
   const clean = sanitizeForSpeech(text);
   if (!clean) return;
   speechQueue.push(clean);
@@ -1592,18 +1433,9 @@ function maybeFinishTurn() {
 
 // ------------------------------------------------------------ LLM-Gespraech
 
-// Reserve neben dem Prompt: die Antwort selbst (max_tokens in llm.ts) plus
-// Puffer fuer die Rollen-/Template-Tokens, die das Chat-Template um jede
-// Nachricht legt und die unsere Zeichen-Schaetzung nicht sieht.
+// Reserve neben dem Prompt: Antwort-Tokens und Chat-Template-Overhead.
 const REPLY_TOKENS = 220;
 const CTX_SAFETY = 160;
-// Mindestplatz, der einem angehaengten Dokument NICHT zusteht: die aktuelle
-// Nutzernachricht und ein paar Zuege Verlauf muessen immer hineinpassen.
-const DOC_MIN_RESERVE = 260;
-// Kehrwert von estimateTokens (conversation.ts) — nur fuer die Rueckrechnung
-// Token -> Zeichen beim Dokument-Budget.
-const CHARS_PER_TOKEN = 3.5;
-
 function buildMessages() {
   const system = {
     role: 'system' as const,
@@ -1611,38 +1443,14 @@ function buildMessages() {
   };
   const opt = settings.llmModel ? llmOptionForId(settings.llmModel) : null;
 
-  // Der versteckte Kickoff ("(Begin now. Greet me ...)") hat seinen Zweck
-  // erfuellt, sobald der Lerner selbst etwas gesagt hat. Danach ist er nur noch
-  // eine Regieanweisung in der user-Rolle mitten im Kontext — genau die Art
-  // Text, die kleine Modelle spiegeln. Also raus (nur aus der ans Modell
-  // gesendeten Liste; der Verlauf selbst bleibt unangetastet).
+  // Den versteckten Kickoff nach dem ersten Nutzersatz aus dem Verlauf nehmen.
   const spoke = history.some((m) => m.role === 'user' && !m.hidden);
   const usable = spoke ? history.filter((m) => !m.hidden) : history;
-
-  // Angehaengtes Dokument und Rollen-Anker direkt an die juengste
-  // Nutzernachricht koppeln, statt sie im System-Prompt zu vergraben: kleine
-  // lokale Modelle gewichten das zuletzt Gelesene am staerksten. Der Anker
-  // steht dabei zuletzt, also unmittelbar am Nutzertext. Wir veraendern nur die
-  // ans Modell gesendete Kopie, nicht die angezeigte Blase.
   const anchor = buildTurnAnchor(settings);
-  // Dem angehaengten Dokument nur den Platz geben, der neben System-Prompt,
-  // Anker und einer Mindestreserve fuer Nutzernachricht + etwas Verlauf uebrig
-  // bleibt. Auf 4096-Token-Modellen aendert das nichts (6000 Zeichen passen
-  // bequem); auf dem 0.8B wird ehrlich gekuerzt, statt den System-Prompt an den
-  // Context-Shift zu verlieren.
   const budget =
     (opt?.nCtx ?? 4096) - REPLY_TOKENS - CTX_SAFETY - estimateTokens(system.content);
-  const docChars = Math.floor(
-    Math.max(0, budget - estimateTokens(anchor) - DOC_MIN_RESERVE) * CHARS_PER_TOKEN,
-  );
-  const preamble = buildDocumentPreamble(settings, docChars);
-  // Der Anker sagt "die Nachricht unten ist vom Lerner" — an der versteckten
-  // Kickoff-Regieanweisung waere das schlicht falsch, also dort nur das
-  // Dokument. Der Dokumenttext muss auch im ersten Zug schon dabei sein, sonst
-  // kann die KI die Eroeffnungsfrage nicht darauf beziehen.
   const decorate = (content: string, hidden?: boolean) =>
-    [preamble, hidden ? '' : anchor, content].filter(Boolean).join('\n\n');
-
+    [hidden ? '' : anchor, content].filter(Boolean).join('\n\n');
   // History von hinten aufnehmen, bis das Token-Budget erschoepft ist. Frueher
   // stand hier eine reine Nachrichten-Anzahl (historyTurns) — ein schlechter
   // Proxy, denn ein Lerner mit langen Saetzen sprengt das Fenster trotz
@@ -1652,7 +1460,7 @@ function buildMessages() {
   const maxTurns = opt?.historyTurns ?? 16;
   const recent: { role: 'user' | 'assistant'; content: string }[] = [];
   let used = 0;
-  let decorated = false; // Anker/Dokument nur an die JUENGSTE Nutzernachricht
+  let decorated = false; // Anker nur an die JUENGSTE Nutzernachricht
   for (let i = usable.length - 1; i >= 0 && recent.length < maxTurns; i--) {
     const m = usable[i];
     const content =
@@ -1889,11 +1697,7 @@ function userTurn(text: string, spoken = false) {
   }
   cancelSpeech();
   conversationStarted = true;
-  // Nach dem Anhaengen einmalig den Datei-Chip an der Nachricht zeigen — das
-  // Dokument bleibt danach als persistenter Kontext aktiv (Chip in der Leiste).
-  const badge = pendingDocBadge;
-  pendingDocBadge = null;
-  const userEl = appendMessage('user', text, badge ?? undefined);
+  const userEl = appendMessage('user', text);
   const msg: ChatMessage = { role: 'user', content: text };
   history.push(msg);
   // Antippbar ist immer nur die neue, jetzt letzte eigene Nachricht.
@@ -1945,87 +1749,6 @@ function startConversation() {
   const kickoff = buildKickoffPrompt(settings);
   saveSettings(settings);
   launchConversation(kickoff);
-}
-
-// ---------------------------------------------------- Datei-/Kontext-Upload
-// Der Nutzer haengt eine Textdatei an; ihr Inhalt wandert in den System-Prompt
-// (siehe conversation.ts), damit die KI im Gespraech darueber sprechen kann.
-const MAX_CONTEXT_CHARS = 6000;
-
-// Name der zuletzt angehaengten Datei, der bei der naechsten Nutzernachricht als
-// Chip in der Blase erscheint (siehe userTurn). Danach wieder null.
-let pendingDocBadge: string | null = null;
-
-function renderContextChip() {
-  const doc = settings.contextDoc;
-  $('#btn-attach').classList.toggle('has-file', !!doc);
-  if (!doc) {
-    $('#context-bar').hidden = true;
-    return;
-  }
-  $('#context-name').textContent = doc.name;
-  $('#context-bar').hidden = false;
-}
-
-function isPdf(file: File): boolean {
-  return file.type === 'application/pdf' || /\.pdf$/i.test(file.name);
-}
-
-async function attachFile(file: File) {
-  let text = '';
-
-  if (isPdf(file)) {
-    // PDFs: Text offline über pdfjs herausziehen. Kann bei vielen Seiten kurz
-    // dauern — deshalb ein Hinweis-Toast, und pdfjs wird erst hier nachgeladen.
-    toast(t('context.reading', { name: file.name }));
-    try {
-      const { extractPdfText } = await import('./lib/pdf');
-      text = await extractPdfText(file, MAX_CONTEXT_CHARS);
-    } catch {
-      toast(t('context.pdfFailed'), true);
-      return;
-    }
-    if (!text.trim()) {
-      // Reine Scan-PDFs ohne Textebene liefern nichts — ehrlich melden.
-      toast(t('context.pdfNoText'), true);
-      return;
-    }
-    settings.contextDoc = { name: file.name, text };
-    pendingDocBadge = file.name;
-    saveSettings(settings);
-    renderContextChip();
-    toast(t('context.added', { name: file.name }));
-    return;
-  }
-
-  try {
-    // Nur den Anfang lesen — grosse Dateien nicht komplett in den Speicher laden.
-    text = await file.slice(0, 400_000).text();
-  } catch {
-    toast(t('context.notText'), true);
-    return;
-  }
-  // Binaerdateien (Bilder …) ergeben beim Text-Lesen unbrauchbaren Salat —
-  // grob am Anteil an Steuer-/Ersatzzeichen erkennen und ablehnen.
-  const sample = text.slice(0, 2000);
-  const junk = (sample.match(/[\u0000-\u0008\u000E-\u001F\uFFFD]/g) ?? []).length;
-  if (!text.trim() || junk > sample.length * 0.02) {
-    toast(t('context.notText'), true);
-    return;
-  }
-  if (text.length > MAX_CONTEXT_CHARS) text = text.slice(0, MAX_CONTEXT_CHARS);
-  settings.contextDoc = { name: file.name, text };
-  pendingDocBadge = file.name;
-  saveSettings(settings);
-  renderContextChip();
-  toast(t('context.added', { name: file.name }));
-}
-
-function removeContext() {
-  settings.contextDoc = null;
-  pendingDocBadge = null;
-  saveSettings(settings);
-  renderContextChip();
 }
 
 // --------------------------------------------------------------- Aufnahme
@@ -2158,15 +1881,16 @@ async function loadAllModels(sinks: ProgressSinks): Promise<void> {
   if (!hw) throw new Error('Hardware unbekannt');
   const llmOpt = settings.llmModel ? llmOptionForId(settings.llmModel) : null;
   if (!llmOpt) throw new Error('Kein Modell gewaehlt');
-  const sttDevice: 'webgpu' | 'wasm' = hw.webgpu ? 'webgpu' : 'wasm';
+  const sttDevice: 'webgpu' | 'wasm' = hw.webgpu && !hw.lightMode ? 'webgpu' : 'wasm';
 
     const jobs: (() => Promise<unknown>)[] = [
     () => llm.load(llmOpt, (p) => sinks.llm(p.pct, p.text), hw!.webgpu),
     () => stt.load(settings.sttModel, sttDevice, target().whisper, (p) => sinks.stt(p.pct)),
-    () => tts.load(hw!.webgpu, currentVoice(), ttsLang(), (p) => sinks.tts(p.pct)),
   ];
-  // Mobil: nacheinander laden, sonst sprengen drei parallele Downloads das Tab-Limit.
-  if (isMobileDevice() || isIOS()) {
+  if (!hw.lightMode) jobs.push(() => tts.load(hw!.webgpu, currentVoice(), ttsLang(), (p) => sinks.tts(p.pct)));
+  // Schwache und mobile Geräte laden Modelle nacheinander, damit Downloads
+  // und Modellinitialisierung nicht gleichzeitig den knappen Tab-Speicher belegen.
+  if (hw.lightMode || isMobileDevice() || isIOS()) {
     for (const job of jobs) await job();
   } else {
     await Promise.all(jobs.map((job) => job()));
@@ -2246,7 +1970,9 @@ async function loadModelsWithProgress(opts: { pill: boolean }): Promise<void> {
   const cachedOpt = settings.llmModel ? llmOptionForId(settings.llmModel) : null;
   if (cachedOpt) cached = await LLMEngine.isCached(cachedOpt.url);
   const update = () => {
-    const avg = Math.round((pcts.llm + pcts.stt + pcts.tts) / 3);
+    const avg = hw?.lightMode
+      ? Math.round((pcts.llm + pcts.stt) / 2)
+      : Math.round((pcts.llm + pcts.stt + pcts.tts) / 3);
     chip.textContent = t(cached ? 'status.loadingCached' : 'status.loading', { pct: avg });
     if (opts.pill) {
       pillText.textContent = t('pill.loading', { pct: avg });
@@ -2446,7 +2172,7 @@ function renderModelStep() {
 function updateSetupTotal() {
   const llmOpt = LLM_OPTIONS.find((o) => o.id === setupSelectedId);
   const sttOpt = STT_OPTIONS.find((o) => o.id === setupSelectedStt);
-  const ttsSize = hw?.webgpu ? TTS_SIZE_WEBGPU_MB : TTS_SIZE_MB;
+  const ttsSize = hw?.lightMode ? 0 : hw?.webgpu ? TTS_SIZE_WEBGPU_MB : TTS_SIZE_MB;
   const total = (llmOpt?.dlSizeMB ?? 0) + (sttOpt?.dlSizeMB ?? 0) + ttsSize;
   $('#setup-total').innerHTML = t('setup.total', { size: fmtGB(total) });
   // Empfehlungs-Karte + CTA spiegeln die aktuelle Auswahl (Default: die
@@ -2733,9 +2459,16 @@ async function initApp() {
   appInitialized = true;
 
   hw = await detectHardware();
+  // Alte Dateianhänge aus gespeicherten Einstellungen entfernen.
+  if ('contextDoc' in settings) {
+    delete (settings as any).contextDoc;
+    saveSettings(settings);
+  }
   // Ohne WebGPU rechnet llama.cpp auf Multithread-WASM weiter — nur langsamer.
   // Kein Blocker mehr, sondern ein Hinweis.
-  if (!hw.webgpu) toast(t('hw.cpuModeToast'));
+  if (!hw.webgpu || !hw.recommendedBrowser) {
+    toast(t(!hw.recommendedBrowser ? 'hw.browserToast' : 'hw.cpuModeToast'));
+  }
 
   migrateFromWebLLM();
 
@@ -2763,6 +2496,15 @@ async function initApp() {
 
   // Gewaehltes Modell validieren (z. B. nach Library-Update)
   if (settings.llmModel && !llmOptionForId(settings.llmModel)) settings.llmModel = null;
+
+  // Bei einem erneuten Besuch ebenfalls auf die sicheren Mobil-Empfehlungen
+  // wechseln; sonst blieben zuvor gewählte große Modelle aktiv.
+  if (hw.lightMode) {
+    const currentLlm = settings.llmModel ? llmOptionForId(settings.llmModel) : null;
+    if (!currentLlm || currentLlm.tier !== 'light') settings.llmModel = hw.recommendedLLM;
+    settings.sttModel = hw.recommendedStt;
+    saveSettings(settings);
+  }
 
   if (settings.setupDone && settings.llmModel) {
     await loadModelsViaChip();
@@ -3066,18 +2808,6 @@ function wireEvents() {
     userTurn(text);
   });
 
-  // Datei-/Kontext-Upload: Knopf oeffnet den Dateidialog, Auswahl haengt an.
-  $('#btn-attach').addEventListener('click', () => {
-    ($('#file-input') as unknown as HTMLInputElement).click();
-  });
-  ($('#file-input') as unknown as HTMLInputElement).addEventListener('change', (e) => {
-    const input = e.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (file) void attachFile(file);
-    input.value = ''; // gleiche Datei erneut waehlbar
-  });
-  $('#context-remove').addEventListener('click', removeContext);
-
   $('#btn-download').addEventListener('click', () => void onSetupDownload());
   // Abgebrochener Download: Retry aus der Pille heraus (HF-Cache resumt).
   $('#dl-pill-retry').addEventListener('click', () => void loadModelsWithProgress({ pill: true }));
@@ -3178,7 +2908,6 @@ export function mountApp() {
   dots?.start();
   // Legenden-Modus: Portraet statt Kugel anzeigen (pausiert die WebGL-Kugel).
   syncPersonaVisual();
-  renderContextChip(); // ggf. gespeicherte Kontext-Datei wieder anzeigen
   void initApp();
 }
 

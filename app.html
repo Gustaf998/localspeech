@@ -101,17 +101,7 @@
         <div id="orb-label" class="orb-label">Modelle werden geladen …</div>
         <div id="orb-hint" class="orb-hint" data-i18n="orb.immersionEnter" aria-hidden="true">↑ Hochziehen für den Sprech-Modus</div>
       </div>
-      <div id="context-bar" class="context-bar" hidden>
-        <span class="context-chip">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M14 3v5h5"/><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-          </svg>
-          <span id="context-name" class="context-name"></span>
-          <button type="button" id="context-remove" class="context-remove" title="Entfernen" aria-label="Entfernen" data-i18n-attr="title:context.remove;aria-label:context.remove">✕</button>
-        </span>
-      </div>
       <form id="composer" class="composer">
-        <input id="file-input" type="file" accept=".pdf,application/pdf,.txt,.md,.markdown,.text,.csv,.json,.srt,.vtt,.log,.tsv,.rtf,text/*" hidden />
         <button type="button" id="btn-orb-mini" class="mini-orb state-loading" title="Sprachgespräch starten" aria-label="Sprachgespräch starten" data-i18n-attr="title:composer.mic;aria-label:composer.mic">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <rect x="9" y="2.5" width="6" height="11" rx="3"/>
@@ -121,11 +111,6 @@
           </svg>
         </button>
         <input id="text-input" type="text" placeholder="Nachricht schreiben …" autocomplete="off" data-i18n-attr="placeholder:composer.placeholder" />
-        <button type="button" id="btn-attach" class="attach-btn" title="Datei anhängen" aria-label="Datei anhängen" data-i18n-attr="title:composer.attach;aria-label:composer.attach">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M21 11.5 12.4 20a5 5 0 0 1-7-7l8-8a3.3 3.3 0 0 1 4.7 4.7l-8 8a1.6 1.6 0 0 1-2.3-2.3l7.4-7.4"/>
-          </svg>
-        </button>
         <button class="send-btn" type="submit" title="Senden" aria-label="Senden" data-i18n-attr="title:composer.send;aria-label:composer.send">
           <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
             <path d="M3.5 20.3 21.5 12 3.5 3.7l-.01 6.4L14.5 12 3.49 13.9z"/>
@@ -167,6 +152,7 @@
         <p class="panel-sub" data-i18n="setup.chooseSub">Einmalige Einrichtung: Wir haben dein Gerät geprüft und markieren die Empfehlung.</p>
         <div id="hw-summary" class="hw-summary"></div>
         <div id="weak-device-warning" class="weak-device-warning" hidden data-i18n="setup.weakDevice">📱 Auf deinem Gerät läuft LocalSpeech eingeschränkt. Für das beste Erlebnis empfehlen wir einen Laptop, PC oder ein Tablet mit mehr Leistung.</div>
+        <div id="browser-warning" class="weak-device-warning" hidden data-i18n="setup.browserWarning">Für die beste Leistung empfehlen wir Chrome oder Edge. In deinem aktuellen Browser können KI-Modelle langsamer laufen oder mehr Speicher benötigen.</div>
         <div id="setup-reco" class="setup-reco">
           <div>
             <div class="reco-label" data-i18n="setup.recoTitle">Empfohlen für dein Gerät</div>

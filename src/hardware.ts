@@ -15,11 +15,13 @@ export interface HardwareInfo {
   cpuOnly: boolean; // kein WebGPU -> LLM laeuft auf Multithread-WASM (langsamer)
   recommendedLLM: string; // Katalog-id des empfohlenen LLM
   recommendedStt: string;
+  lightMode: boolean;
+  recommendedBrowser: boolean;
 }
 
 // Grobe Formfaktor-Erkennung ueber den User-Agent (nicht die Leistungsklasse!)
-// — ein Smartphone bekommt die Empfehlung auf ein staerkeres Geraet zu
-// wechseln, selbst wenn es zufaellig genug RAM/Kerne fuer "balanced" hat.
+// — Smartphones erhalten das kompakte 0.5B-Modell, selbst wenn sie genug
+// RAM/Kerne fuer eine hoehere abstrakte Leistungsklasse melden.
 export function isMobileDevice(): boolean {
   return /Android|iPhone|iPod|Mobile|Windows Phone/i.test(navigator.userAgent);
 }
@@ -30,15 +32,20 @@ export function isIOS(): boolean {
   return /iPhone|iPod|iPad/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
 }
 
-function isIPhone(): boolean {
-  return /iPhone|iPod/.test(navigator.userAgent);
-}
-
 // Smartphone ODER schwache Hardware (Leistungsklasse "light" ohne WebGPU) —
 // beides rechtfertigt die Empfehlung, LocalSpeech auf einem staerkeren
 // Laptop/PC/Tablet zu nutzen.
 export function isWeakDevice(hw: HardwareInfo): boolean {
-  return isMobileDevice() || (hw.tier === 'light' && hw.cpuOnly);
+  return hw.lightMode || isMobileDevice();
+}
+
+// Chrome und Edge (Chromium) sind aktuell die zuverlässigsten Browser für
+// WebGPU und die großen lokalen Modelle.
+export function isRecommendedBrowser(): boolean {
+  const ua = navigator.userAgent;
+  if (/Edg(?:A|iOS)?\//.test(ua) || /CriOS\//.test(ua)) return true;
+  const chromiumChrome = /Chrome\//.test(ua) && !/OPR\//.test(ua) && !/SamsungBrowser\//.test(ua);
+  return chromiumChrome && !(navigator as Navigator & { brave?: { isBrave?: () => Promise<boolean> } }).brave;
 }
 
 export async function detectHardware(): Promise<HardwareInfo> {
@@ -73,23 +80,27 @@ export async function detectHardware(): Promise<HardwareInfo> {
   let tier: Tier = 'light';
   if (webgpu) {
     // Safari/Firefox kennen deviceMemory nicht -> auf Mobilgeraeten vorsichtig 4 annehmen.
-    const mem = deviceMemoryGB ?? (isMobileDevice() || isIOS() ? 4 : 8); // Chrome deckelt deviceMemory bei 8
+    // Fehlende Werte nicht als 8 GB behandeln: Safari/Firefox melden RAM nicht,
+    // und eine optimistische Annahme führt auf schwachen Geräten zu OOM.
+    const mem = deviceMemoryGB ?? (isMobileDevice() || isIOS() ? 3 : 4);
     if (maxBufferGB >= 3.5 && mem >= 8) tier = 'strong';
     else if (maxBufferGB >= 1.8 && mem >= 4) tier = 'balanced';
-  } else if (cores >= 8 && (deviceMemoryGB ?? 8) >= 8) {
+  } else if (cores >= 8 && deviceMemoryGB !== null && deviceMemoryGB >= 8) {
     // Ohne WebGPU rechnet llama.cpp auf Multithread-WASM: auf starken CPUs
     // ist das mittlere Modell noch benutzbar (~4-8 Token/s).
     tier = 'balanced';
   }
-  // Mobil: RAM-Limits pro Tab sind deutlich strenger als der Adapter vermuten laesst.
-  if (isIPhone()) tier = 'light';
-  else if ((isMobileDevice() || isIOS()) && tier === 'strong') tier = 'balanced';
+  // Mobile Browser begrenzen den Speicher pro Tab stark. Das kleine Modell
+  // bleibt daher auch auf leistungsfaehigen Handys die Empfehlung.
+  if (isMobileDevice() || isIOS()) tier = 'light';
   const cpuOnly = !webgpu;
 
   // strong-Geraete (GPU mit >=3.5-GiB-Puffern) tragen das 4B (Q3_K_S, s.
-  // catalog.ts), balanced mit GPU das 2B; CPU-only und light bleiben beim 0.8B.
+  // catalog.ts), balanced mit GPU das 2B; light und Handys erhalten das 0.5B.
   const recommendedLLM =
-    !cpuOnly && tier === 'strong'
+    isMobileDevice() || isIOS() || tier === 'light'
+      ? 'qwen25-0.5b'
+      : !cpuOnly && tier === 'strong'
       ? 'qwen35-4b'
       : !cpuOnly && tier === 'balanced'
         ? 'qwen35-2b'
@@ -97,6 +108,12 @@ export async function detectHardware(): Promise<HardwareInfo> {
 
   const recommendedStt =
     tier === 'light' ? 'onnx-community/whisper-tiny' : 'onnx-community/whisper-small';
+
+  // Auch WebGPU-Geräte können wenig RAM haben. Bei unklarer RAM-Angabe setzen
+  // wir das Profil anhand von CPU-Kernen und Formfaktor konservativ herab.
+  const lowMemory = (deviceMemoryGB !== null && deviceMemoryGB <= 4) || cores <= 4;
+  const lightMode = isMobileDevice() || isIOS() || lowMemory || (tier === 'light' && cpuOnly);
+  const recommendedBrowser = isRecommendedBrowser();
 
   console.info('[hw]', {
     webgpu,
@@ -109,8 +126,10 @@ export async function detectHardware(): Promise<HardwareInfo> {
     recommendedLLM,
     crossOriginIsolated: self.crossOriginIsolated,
     ios: isIOS(),
+    lightMode,
+    recommendedBrowser,
   });
-  return { webgpu, f16, vendor, maxBufferGB, deviceMemoryGB, cores, tier, cpuOnly, recommendedLLM, recommendedStt };
+  return { webgpu, f16, vendor, maxBufferGB, deviceMemoryGB, cores, tier, cpuOnly, recommendedLLM, recommendedStt, lightMode, recommendedBrowser };
 }
 
 export function tierLabel(tier: Tier): string {
